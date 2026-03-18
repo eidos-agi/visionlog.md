@@ -1,0 +1,29 @@
+{
+	"name": "visionlog.md",
+	"version": "0.1.0",
+	"description": "Vision, goals, ADRs, guardrails, SOPs — the governance layer for AI-assisted projects",
+	"type": "module",
+	"bin": {
+		"visionlog": "./dist/visionlog"
+	},
+	"scripts": {
+		"dev": "bun src/cli.ts",
+		"build": "bun build --production --compile --minify --outfile=dist/visionlog src/cli.ts",
+		"mcp": "bun src/cli.ts mcp start",
+		"test": "bun test",
+		"check:types": "bunx tsc --noEmit",
+		"check": "bunx biome check .",
+		"check:fix": "bunx biome check --write ."
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.0.0",
+		"commander": "^12.0.0",
+		"gray-matter": "^4.0.3",
+		"zod": "^3.0.0"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "1.9.4",
+		"@types/bun": "latest",
+		"typescript": "^5.0.0"
+	}
+}
