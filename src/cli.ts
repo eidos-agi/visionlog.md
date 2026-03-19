@@ -113,8 +113,10 @@ goalCmd
 			const updates: Parameters<typeof core.updateGoal>[1] = {};
 			if (opts.status) updates.status = opts.status as "locked" | "available" | "in-progress" | "complete";
 			if (opts.title) updates.title = opts.title;
-			if (opts.dependsOn) updates.depends_on = opts.dependsOn.split(",").map((s) => s.trim());
-			if (opts.unlocks) updates.unlocks = opts.unlocks.split(",").map((s) => s.trim());
+			if (opts.dependsOn !== undefined)
+				updates.depends_on = opts.dependsOn ? opts.dependsOn.split(",").map((s) => s.trim()).filter(Boolean) : [];
+			if (opts.unlocks !== undefined)
+				updates.unlocks = opts.unlocks ? opts.unlocks.split(",").map((s) => s.trim()).filter(Boolean) : [];
 			if (opts.backlogTag) updates.backlog_tag = opts.backlogTag;
 			if (opts.body) updates.body = opts.body;
 			const goal = await core.updateGoal(id, updates);

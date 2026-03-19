@@ -72,6 +72,7 @@ export class VisionCore {
 		const complete = new Set(all.filter((g) => g.status === "complete").map((g) => g.id));
 		return all.filter((g) => {
 			if (g.status !== "locked") return false;
+			if (g.depends_on.length === 0) return false; // no-dep locked goals should be set to available explicitly
 			return g.depends_on.every((dep) => complete.has(dep));
 		});
 	}
