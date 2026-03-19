@@ -90,15 +90,37 @@ goalCmd
 
 goalCmd
 	.command("update <id>")
-	.description("Update a goal's status")
-	.option("--status <status>", "New status")
-	.action(async (id: string, opts: { status?: string }) => {
-		const core = await getCore();
-		const goal = await core.updateGoal(id, {
-			status: opts.status as "locked" | "available" | "in-progress" | "complete" | undefined,
-		});
-		console.log(`Updated ${goal.id}: ${goal.title} [${goal.status}]`);
-	});
+	.description("Update a goal")
+	.option("--status <status>", "New status (locked|available|in-progress|complete)")
+	.option("--title <title>", "New title")
+	.option("--depends-on <ids>", "Comma-separated dependency IDs (replaces existing)")
+	.option("--unlocks <ids>", "Comma-separated IDs this unlocks (replaces existing)")
+	.option("--backlog-tag <tag>", "backlog.md milestone or label")
+	.option("--body <body>", "New markdown body")
+	.action(
+		async (
+			id: string,
+			opts: {
+				status?: string;
+				title?: string;
+				dependsOn?: string;
+				unlocks?: string;
+				backlogTag?: string;
+				body?: string;
+			},
+		) => {
+			const core = await getCore();
+			const updates: Parameters<typeof core.updateGoal>[1] = {};
+			if (opts.status) updates.status = opts.status as "locked" | "available" | "in-progress" | "complete";
+			if (opts.title) updates.title = opts.title;
+			if (opts.dependsOn) updates.depends_on = opts.dependsOn.split(",").map((s) => s.trim());
+			if (opts.unlocks) updates.unlocks = opts.unlocks.split(",").map((s) => s.trim());
+			if (opts.backlogTag) updates.backlog_tag = opts.backlogTag;
+			if (opts.body) updates.body = opts.body;
+			const goal = await core.updateGoal(id, updates);
+			console.log(`Updated ${goal.id}: ${goal.title} [${goal.status}]`);
+		},
+	);
 
 goalCmd
 	.command("unlockable")

@@ -82,7 +82,7 @@ export function registerGoalTools(server: McpServer, core: VisionCore) {
 			body: z.string().optional(),
 		},
 		async ({ id, ...updates }) => {
-			const goal = await core.updateGoal(id, updates as Partial<Goal>);
+			const goal = await core.updateGoal(id, updates as Partial<Omit<Goal, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${goal.id}: ${goal.title} [${goal.status}]` }] };
 		},
 	);

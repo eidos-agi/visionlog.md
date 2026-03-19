@@ -72,7 +72,7 @@ export function registerSopTools(server: McpServer, core: VisionCore) {
 			body: z.string().optional(),
 		},
 		async ({ id, ...updates }) => {
-			const sop = await core.updateSop(id, updates as Partial<Sop>);
+			const sop = await core.updateSop(id, updates as Partial<Omit<Sop, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${sop.id}: ${sop.title} [${sop.status}]` }] };
 		},
 	);

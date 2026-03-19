@@ -76,7 +76,7 @@ export function registerDecisionTools(server: McpServer, core: VisionCore) {
 			body: z.string().optional(),
 		},
 		async ({ id, ...updates }) => {
-			const d = await core.updateDecision(id, updates as Partial<Decision>);
+			const d = await core.updateDecision(id, updates as Partial<Omit<Decision, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${d.id}: ${d.title} [${d.status}]` }] };
 		},
 	);

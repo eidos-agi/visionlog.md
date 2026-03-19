@@ -70,7 +70,7 @@ export function registerGuardrailTools(server: McpServer, core: VisionCore) {
 			body: z.string().optional(),
 		},
 		async ({ id, ...updates }) => {
-			const g = await core.updateGuardrail(id, updates as Partial<Guardrail>);
+			const g = await core.updateGuardrail(id, updates as Partial<Omit<Guardrail, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${g.id}: ${g.title} [${g.status}]` }] };
 		},
 	);
