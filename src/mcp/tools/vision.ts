@@ -111,6 +111,17 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 			const sections: string[] = [];
 			const missing: string[] = [];
 
+			// Eidos philosophy — always present, regardless of project content
+			sections.push(`## Eidos Principles (the foundation this tool is built on)
+
+**The Kernel**: Guardrails are immutable conscience, not preferences. They are the project's alignment layer. Treat them as such.
+
+**The Separation**: Governance is structure. Code is substance. They must not blur. visionlog holds structure only — never implementation details.
+
+**PERCEIVE before ACT**: You are in the perception phase right now. visionlog_guide gives you meaning and direction. visionlog_boot gives you constraints and state. Both are required before any action.
+
+**Vision is sticky, goals are dealt**: The vision is this project's identity — it does not drift. Goals are the current hand being played. If a goal seems to contradict the vision, surface the conflict. Do not silently update either.`);
+
 			// Why this exists
 			const vision = await core.getVision();
 			if (vision?.body?.trim()) {
