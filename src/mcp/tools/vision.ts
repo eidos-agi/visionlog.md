@@ -105,7 +105,7 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 
 	server.tool(
 		"visionlog_guide",
-		"Returns the full strategic context for this project: vision, key decisions, and goal map. Answers Who/What/When/Where/Why for any agent dropped into this codebase. Call this when you need to understand what the project is and why it exists — not just what state it's in.",
+		"Call this at the start of every session, alongside visionlog_boot. Returns the full strategic context: vision, key decisions, and goal map — the Who/What/When/Where/Why of this project. visionlog_boot gives you constraints and state. This gives you meaning and direction. Both are required to work effectively.",
 		{},
 		async () => {
 			const sections: string[] = [];
