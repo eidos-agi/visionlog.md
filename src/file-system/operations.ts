@@ -1,5 +1,5 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { basename, join } from "node:path";
 import { DIRECTORIES, FILES, ID_PREFIXES } from "../constants/index.ts";
 import {
 	parseConfig,
@@ -71,7 +71,7 @@ export class VisionFS {
 		}
 		const nums = files
 			.map((f) => {
-				const m = f.match(new RegExp(`^${prefix}-(\\d+)`));
+				const m = f.match(new RegExp(`^${prefix}-(\\d+)`, "i"));
 				return m ? parseInt(m[1], 10) : 0;
 			})
 			.filter((n) => n > 0);
@@ -108,7 +108,7 @@ export class VisionFS {
 
 	async saveGoal(goal: Goal): Promise<string> {
 		const filename = goal.filePath
-			? goal.filePath.split("/").pop()!
+			? basename(goal.filePath)
 			: this.goalFilename(goal);
 		const path = join(this.root, DIRECTORIES.GOALS, filename);
 		await writeFile(path, serializeGoal(goal), "utf8");
@@ -146,7 +146,7 @@ export class VisionFS {
 
 	async saveDecision(decision: Decision): Promise<string> {
 		const filename = decision.filePath
-			? decision.filePath.split("/").pop()!
+			? basename(decision.filePath)
 			: this.decisionFilename(decision);
 		const path = join(this.root, DIRECTORIES.DECISIONS, filename);
 		await writeFile(path, serializeDecision(decision), "utf8");
@@ -184,7 +184,7 @@ export class VisionFS {
 
 	async saveGuardrail(guardrail: Guardrail): Promise<string> {
 		const filename = guardrail.filePath
-			? guardrail.filePath.split("/").pop()!
+			? basename(guardrail.filePath)
 			: this.guardrailFilename(guardrail);
 		const path = join(this.root, DIRECTORIES.GUARDRAILS, filename);
 		await writeFile(path, serializeGuardrail(guardrail), "utf8");
@@ -222,7 +222,7 @@ export class VisionFS {
 
 	async saveSop(sop: Sop): Promise<string> {
 		const filename = sop.filePath
-			? sop.filePath.split("/").pop()!
+			? basename(sop.filePath)
 			: this.sopFilename(sop);
 		const path = join(this.root, DIRECTORIES.SOPS, filename);
 		await writeFile(path, serializeSop(sop), "utf8");
@@ -246,12 +246,17 @@ export class VisionFS {
 		return Promise.all(files.map((f) => this.loadSop(f)));
 	}
 
+	async findSop(id: string): Promise<Sop | null> {
+		const list = await this.listSops();
+		return list.find((s) => s.id === id.toUpperCase()) ?? null;
+	}
+
 	// ─── Standards ───────────────────────────────────────────────────────────
 
 	async saveStandard(std: Standard): Promise<string> {
 		const slug = std.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 50);
 		const filename = std.filePath
-			? std.filePath.split("/").pop()!
+			? basename(std.filePath)
 			: `${std.id}-${slug}.md`;
 		const path = join(this.root, DIRECTORIES.STANDARDS, filename);
 		await writeFile(path, serializeStandard(std), "utf8");

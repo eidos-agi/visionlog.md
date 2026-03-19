@@ -99,8 +99,11 @@ export function parseVision(content: string, filePath?: string): Vision {
 }
 
 export function parseConfig(yamlContent: string): VisionlogConfig {
-	// Simple YAML parse using gray-matter trick
-	const { data } = matter(`---\n${yamlContent}\n---`);
+	// Wrap in frontmatter delimiters only if not already present
+	const normalised = yamlContent.trimStart().startsWith("---")
+		? yamlContent
+		: `---\n${yamlContent}\n---`;
+	const { data } = matter(normalised);
 	return {
 		project: String(data.project ?? ""),
 		backlog_path: data.backlog_path ? String(data.backlog_path) : undefined,

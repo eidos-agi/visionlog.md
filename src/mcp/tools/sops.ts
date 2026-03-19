@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { VisionCore } from "../../core/visionlog.ts";
+import type { Sop } from "../../types/index.ts";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 const sopStatusSchema = z.enum(["draft", "active", "deprecated"]);
@@ -25,8 +26,7 @@ export function registerSopTools(server: McpServer, core: VisionCore) {
 		"View a Standard Operating Procedure in full.",
 		{ id: z.string().describe("SOP ID (e.g. SOP-001)") },
 		async ({ id }) => {
-			const sops = await core.listSops();
-			const sop = sops.find((s) => s.id === id.toUpperCase());
+			const sop = await core.getSop(id);
 			if (!sop) return { content: [{ type: "text" as const, text: `SOP ${id} not found.` }] };
 			const text = [
 				`# ${sop.id}: ${sop.title}`,
@@ -53,11 +53,27 @@ export function registerSopTools(server: McpServer, core: VisionCore) {
 		async ({ title, status, adr, body }) => {
 			const sop = await core.createSop({
 				title,
-				status: status as "draft" | "active" | "deprecated" | undefined,
+				status: status as Sop["status"] | undefined,
 				adr,
 				body,
 			});
 			return { content: [{ type: "text" as const, text: `Created ${sop.id}: ${sop.title} [${sop.status}]` }] };
+		},
+	);
+
+	server.tool(
+		"sop_update",
+		"Update a SOP's status, body, or linked ADR.",
+		{
+			id: z.string().describe("SOP ID (e.g. SOP-001)"),
+			status: sopStatusSchema.optional(),
+			title: z.string().optional(),
+			adr: z.string().optional(),
+			body: z.string().optional(),
+		},
+		async ({ id, ...updates }) => {
+			const sop = await core.updateSop(id, updates as Partial<Sop>);
+			return { content: [{ type: "text" as const, text: `Updated ${sop.id}: ${sop.title} [${sop.status}]` }] };
 		},
 	);
 }

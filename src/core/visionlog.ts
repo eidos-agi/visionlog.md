@@ -166,6 +166,18 @@ export class VisionCore {
 		return this.fs.listSops();
 	}
 
+	async getSop(id: string): Promise<Sop | null> {
+		return this.fs.findSop(id);
+	}
+
+	async updateSop(id: string, updates: Partial<Omit<Sop, "id" | "type">>): Promise<Sop> {
+		const sop = await this.fs.findSop(id);
+		if (!sop) throw new Error(`SOP ${id} not found`);
+		const updated: Sop = { ...sop, ...updates };
+		await this.fs.saveSop(updated);
+		return updated;
+	}
+
 	// ─── Standards ───────────────────────────────────────────────────────────
 
 	async createStandard(input: StandardCreateInput): Promise<Standard> {
