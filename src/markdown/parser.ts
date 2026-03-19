@@ -107,6 +107,6 @@ export function parseConfig(yamlContent: string): VisionlogConfig {
 	return {
 		project: String(data.project ?? ""),
 		backlog_path: data.backlog_path ? String(data.backlog_path) : undefined,
-		created: String(data.created ?? new Date().toISOString().slice(0, 10)),
+		created: parseDate(data.created),
 	};
 }

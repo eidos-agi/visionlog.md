@@ -16,9 +16,22 @@ import type {
 
 export class VisionCore {
 	private readonly fs: VisionFS;
+	private readonly _createQueues = new Map<string, Promise<unknown>>();
 
 	constructor(projectRoot: string) {
 		this.fs = new VisionFS(projectRoot);
+	}
+
+	/**
+	 * Serializes concurrent creates per entity type so that nextId() + save()
+	 * are atomic within a single process. Prevents duplicate IDs when the MCP
+	 * server handles parallel tool calls (e.g. an LLM bootstrapping a goal DAG).
+	 */
+	private serialCreate<T>(entity: string, fn: () => Promise<T>): Promise<T> {
+		const tail = this._createQueues.get(entity) ?? Promise.resolve();
+		const next = tail.catch(() => {}).then(fn);
+		this._createQueues.set(entity, next.catch(() => {}));
+		return next;
 	}
 
 	// ─── Lifecycle ───────────────────────────────────────────────────────────
@@ -34,20 +47,22 @@ export class VisionCore {
 	// ─── Goals ───────────────────────────────────────────────────────────────
 
 	async createGoal(input: GoalCreateInput): Promise<Goal> {
-		const id = await this.fs.nextGoalId();
-		const goal: Goal = {
-			id,
-			type: "goal",
-			title: input.title,
-			status: input.status ?? "locked",
-			date: new Date().toISOString().slice(0, 10),
-			depends_on: input.depends_on ?? [],
-			unlocks: input.unlocks ?? [],
-			backlog_tag: input.backlog_tag,
-			body: input.body ?? `## What this achieves\n\n\n\n## Exit Criteria\n\n- [ ] \n\n## Notes\n\n`,
-		};
-		await this.fs.saveGoal(goal);
-		return goal;
+		return this.serialCreate("goal", async () => {
+			const id = await this.fs.nextGoalId();
+			const goal: Goal = {
+				id,
+				type: "goal",
+				title: input.title,
+				status: input.status ?? "locked",
+				date: new Date().toISOString().slice(0, 10),
+				depends_on: input.depends_on ?? [],
+				unlocks: input.unlocks ?? [],
+				backlog_tag: input.backlog_tag,
+				body: input.body ?? `## What this achieves\n\n\n\n## Exit Criteria\n\n- [ ] \n\n## Notes\n\n`,
+			};
+			await this.fs.saveGoal(goal);
+			return goal;
+		});
 	}
 
 	async listGoals(): Promise<Goal[]> {
@@ -80,21 +95,23 @@ export class VisionCore {
 	// ─── Decisions ───────────────────────────────────────────────────────────
 
 	async createDecision(input: DecisionCreateInput): Promise<Decision> {
-		const id = await this.fs.nextDecisionId();
-		const decision: Decision = {
-			id,
-			type: "decision",
-			title: input.title,
-			status: input.status ?? "proposed",
-			date: new Date().toISOString().slice(0, 10),
-			supersedes: input.supersedes,
-			relates_to: input.relates_to ?? [],
-			body:
-				input.body ??
-				`## Context\n\n\n\n## Decision\n\n\n\n## Consequences\n\n### Positive\n\n- \n\n### Negative\n\n- \n`,
-		};
-		await this.fs.saveDecision(decision);
-		return decision;
+		return this.serialCreate("decision", async () => {
+			const id = await this.fs.nextDecisionId();
+			const decision: Decision = {
+				id,
+				type: "decision",
+				title: input.title,
+				status: input.status ?? "proposed",
+				date: new Date().toISOString().slice(0, 10),
+				supersedes: input.supersedes,
+				relates_to: input.relates_to ?? [],
+				body:
+					input.body ??
+					`## Context\n\n\n\n## Decision\n\n\n\n## Consequences\n\n### Positive\n\n- \n\n### Negative\n\n- \n`,
+			};
+			await this.fs.saveDecision(decision);
+			return decision;
+		});
 	}
 
 	async listDecisions(): Promise<Decision[]> {
@@ -116,18 +133,20 @@ export class VisionCore {
 	// ─── Guardrails ──────────────────────────────────────────────────────────
 
 	async createGuardrail(input: GuardrailCreateInput): Promise<Guardrail> {
-		const id = await this.fs.nextGuardrailId();
-		const guardrail: Guardrail = {
-			id,
-			type: "guardrail",
-			title: input.title,
-			status: input.status ?? "active",
-			date: new Date().toISOString().slice(0, 10),
-			adr: input.adr,
-			body: input.body ?? `## Rule\n\n\n\n## Why\n\n\n\n## Violation Examples\n\n- \n`,
-		};
-		await this.fs.saveGuardrail(guardrail);
-		return guardrail;
+		return this.serialCreate("guardrail", async () => {
+			const id = await this.fs.nextGuardrailId();
+			const guardrail: Guardrail = {
+				id,
+				type: "guardrail",
+				title: input.title,
+				status: input.status ?? "active",
+				date: new Date().toISOString().slice(0, 10),
+				adr: input.adr,
+				body: input.body ?? `## Rule\n\n\n\n## Why\n\n\n\n## Violation Examples\n\n- \n`,
+			};
+			await this.fs.saveGuardrail(guardrail);
+			return guardrail;
+		});
 	}
 
 	async listGuardrails(): Promise<Guardrail[]> {
@@ -149,18 +168,20 @@ export class VisionCore {
 	// ─── SOPs ────────────────────────────────────────────────────────────────
 
 	async createSop(input: SopCreateInput): Promise<Sop> {
-		const id = await this.fs.nextSopId();
-		const sop: Sop = {
-			id,
-			type: "sop",
-			title: input.title,
-			status: input.status ?? "draft",
-			date: new Date().toISOString().slice(0, 10),
-			adr: input.adr,
-			body: input.body ?? `## When to use this\n\n\n\n## Steps\n\n1. \n\n## Guards\n\n- \n`,
-		};
-		await this.fs.saveSop(sop);
-		return sop;
+		return this.serialCreate("sop", async () => {
+			const id = await this.fs.nextSopId();
+			const sop: Sop = {
+				id,
+				type: "sop",
+				title: input.title,
+				status: input.status ?? "draft",
+				date: new Date().toISOString().slice(0, 10),
+				adr: input.adr,
+				body: input.body ?? `## When to use this\n\n\n\n## Steps\n\n1. \n\n## Guards\n\n- \n`,
+			};
+			await this.fs.saveSop(sop);
+			return sop;
+		});
 	}
 
 	async listSops(): Promise<Sop[]> {
@@ -182,18 +203,20 @@ export class VisionCore {
 	// ─── Standards ───────────────────────────────────────────────────────────
 
 	async createStandard(input: StandardCreateInput): Promise<Standard> {
-		const id = await this.fs.nextStandardId();
-		const std: Standard = {
-			id,
-			type: "standard",
-			title: input.title,
-			status: input.status ?? "draft",
-			date: new Date().toISOString().slice(0, 10),
-			adr: input.adr,
-			body: input.body ?? `## Rule\n\n\n\n## Rationale\n\n\n\n## Examples\n\n`,
-		};
-		await this.fs.saveStandard(std);
-		return std;
+		return this.serialCreate("standard", async () => {
+			const id = await this.fs.nextStandardId();
+			const std: Standard = {
+				id,
+				type: "standard",
+				title: input.title,
+				status: input.status ?? "draft",
+				date: new Date().toISOString().slice(0, 10),
+				adr: input.adr,
+				body: input.body ?? `## Rule\n\n\n\n## Rationale\n\n\n\n## Examples\n\n`,
+			};
+			await this.fs.saveStandard(std);
+			return std;
+		});
 	}
 
 	async listStandards(): Promise<Standard[]> {
