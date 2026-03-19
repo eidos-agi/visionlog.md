@@ -55,13 +55,14 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 		async () => {
 			const sections: string[] = [];
 
-			// 1. Guardrails
+			// 1. Guardrails — full body so agent can reason, not just comply
 			const guards = (await core.listGuardrails()).filter((g) => g.status === "active");
 			if (guards.length) {
-				sections.push(
-					"## Guardrails (MUST be respected at all times)\n" +
-					guards.map((g) => `- **${g.id}**: ${g.title}`).join("\n"),
-				);
+				const guardBlocks = guards.map((g) => {
+					const body = g.body?.trim() ? `\n${g.body.trim()}` : "";
+					return `### ${g.id}: ${g.title}${body}`;
+				});
+				sections.push("## Guardrails (MUST be respected at all times)\n\n" + guardBlocks.join("\n\n"));
 			}
 
 			// 2. Active goal
@@ -99,6 +100,60 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 			}
 
 			return { content: [{ type: "text" as const, text: sections.join("\n\n") }] };
+		},
+	);
+
+	server.tool(
+		"visionlog_guide",
+		"Returns the full strategic context for this project: vision, key decisions, and goal map. Answers Who/What/When/Where/Why for any agent dropped into this codebase. Call this when you need to understand what the project is and why it exists — not just what state it's in.",
+		{},
+		async () => {
+			const sections: string[] = [];
+			const missing: string[] = [];
+
+			// Why this exists
+			const vision = await core.getVision();
+			if (vision?.body?.trim()) {
+				sections.push(`# ${vision.title}\n\n${vision.body.trim()}`);
+			} else {
+				missing.push("`vision_set` — define why this project exists, its destination, and anti-goals");
+			}
+
+			// How key decisions were made — only show decisions with real bodies
+			const decisions = (await core.listDecisions()).filter((d) => d.status === "accepted");
+			const decisionsWithBody = decisions.filter((d) => d.body?.trim() && !d.body.includes("## Context\n\n\n"));
+			if (decisionsWithBody.length) {
+				const decisionBlocks = decisionsWithBody.map((d) => `### ${d.id}: ${d.title}\n${d.body!.trim()}`);
+				sections.push("## Key Decisions (the reasoning behind the architecture)\n\n" + decisionBlocks.join("\n\n"));
+			} else if (decisions.length) {
+				sections.push(`## Key Decisions\n${decisions.map((d) => `- **${d.id}**: ${d.title}`).join("\n")}\n\n_Bodies not yet written. Call \`decision_view <id>\` or \`decision_update\` to add context._`);
+			} else {
+				missing.push("`decision_create` — record the key architectural choices and why they were made");
+			}
+
+			// Where we are in the goal map
+			const goals = await core.listGoals();
+			if (goals.length) {
+				const byStatus: Record<string, typeof goals> = {};
+				for (const g of goals) (byStatus[g.status] ??= []).push(g);
+				const order = ["in-progress", "available", "locked", "complete"];
+				const goalLines = order.flatMap((s) =>
+					(byStatus[s] ?? []).map((g) => {
+						const deps = g.depends_on.length ? ` (needs: ${g.depends_on.join(", ")})` : "";
+						return `- [${s}] **${g.id}**: ${g.title}${deps}`;
+					}),
+				);
+				sections.push("## Goal Map\n\n" + goalLines.join("\n"));
+			} else {
+				missing.push("`goal_create` — define the goal DAG so agents know what 'done' looks like");
+			}
+
+			// Surface what needs to be defined
+			if (missing.length) {
+				sections.push("## ⚠ Governance gaps — fill these to give agents full context\n\n" + missing.map((m) => `- ${m}`).join("\n"));
+			}
+
+			return { content: [{ type: "text" as const, text: sections.join("\n\n---\n\n") }] };
 		},
 	);
 
