@@ -11,7 +11,7 @@
 		"build": "bun build --production --compile --minify --outfile=dist/visionlog src/cli.ts",
 		"mcp": "bun src/cli.ts mcp start",
 		"test": "bun test",
-		"check:types": "bunx tsc --noEmit",
+		"check:types": "node --max-old-space-size=8192 node_modules/typescript/bin/tsc --noEmit",
 		"check": "bunx biome check .",
 		"check:fix": "bunx biome check --write ."
 	},

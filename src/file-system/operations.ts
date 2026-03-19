@@ -51,12 +51,28 @@ export class VisionFS {
 		for (const dir of Object.values(DIRECTORIES)) {
 			await mkdir(join(this.root, dir), { recursive: true });
 		}
+		// Preserve existing UUID if already initialized — re-init must not rotate the ID
+		let existingId = "";
+		try {
+			const existing = await this.loadConfig();
+			if (existing.id) existingId = existing.id;
+		} catch {}
 		const config: VisionlogConfig = {
+			id: existingId || crypto.randomUUID(),
 			project: projectName,
 			backlog_path: backlogPath,
 			created: new Date().toISOString().slice(0, 10),
 		};
 		await this.saveConfig(config);
+	}
+
+	async getProjectId(): Promise<string> {
+		const config = await this.loadConfig();
+		if (config.id) return config.id;
+		// Migrate legacy config: write id on first read
+		const id = crypto.randomUUID();
+		await this.saveConfig({ ...config, id });
+		return id;
 	}
 
 	// ─── ID generation ───────────────────────────────────────────────────────
