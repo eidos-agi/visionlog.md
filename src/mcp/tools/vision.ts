@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { z } from "zod";
 import type { VisionCore } from "../../core/visionlog.ts";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -43,6 +45,60 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 				`Vision: ${status.has_vision ? "set" : "not set"}`,
 			];
 			return { content: [{ type: "text" as const, text: lines.join("\n") }] };
+		},
+	);
+
+	server.tool(
+		"visionlog_boot",
+		"Call this at the start of every session. Returns active guardrails, current goal state, and a situational report — including whether backlog.md is initialized. One call orients the agent completely.",
+		{},
+		async () => {
+			const sections: string[] = [];
+
+			// 1. Guardrails
+			const guards = (await core.listGuardrails()).filter((g) => g.status === "active");
+			if (guards.length) {
+				sections.push(
+					"## Guardrails (MUST be respected at all times)\n" +
+					guards.map((g) => `- **${g.id}**: ${g.title}`).join("\n"),
+				);
+			}
+
+			// 2. Active goal
+			const goals = await core.listGoals();
+			const active = goals.filter((g) => g.status === "in-progress");
+			const available = goals.filter((g) => g.status === "available");
+			if (active.length) {
+				const g = active[0];
+				const body = g.body?.trim() ? `\n\n${g.body.trim()}` : "";
+				sections.push(`## Active Goal\n**${g.id}**: ${g.title}${body}`);
+			} else if (available.length) {
+				sections.push(
+					`## No Active Goal\nAvailable to start:\n` +
+					available.map((g) => `- ${g.id}: ${g.title}`).join("\n") +
+					`\n\nAsk the user which goal to advance before starting work.`,
+				);
+			} else {
+				sections.push("## No Goals\nNo goals defined. Run `visionlog_init` or create goals before working.");
+			}
+
+			// 3. Backlog.md check
+			const projectRoot = (core as any).fs?.root ?? "";
+			const backlogExists =
+				existsSync(join(projectRoot, "backlog")) ||
+				existsSync(join(projectRoot, ".backlog")) ||
+				existsSync(join(projectRoot, "backlog.md"));
+			if (!backlogExists) {
+				sections.push(
+					"## ⚠ backlog.md NOT initialized\n" +
+					"GUARD-003 requires all work to be tracked in a backlog.md task. " +
+					"Run `backlog init` in this project before starting any work.",
+				);
+			} else {
+				sections.push("## backlog.md ✓\nConfirm there is an active task before writing code. Create one with `task_create` if needed.");
+			}
+
+			return { content: [{ type: "text" as const, text: sections.join("\n\n") }] };
 		},
 	);
 
