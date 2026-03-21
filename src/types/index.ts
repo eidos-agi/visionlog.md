@@ -133,6 +133,7 @@ export interface Vision {
 // ─── Config ──────────────────────────────────────────────────────────────────
 
 export interface VisionlogConfig {
+	id?: string; // UUID — stable targeting key for multi-project sessions
 	project: string;
 	backlog_path?: string; // relative path to backlog/ dir — for loose coupling
 	created: string;

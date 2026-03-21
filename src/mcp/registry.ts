@@ -18,7 +18,7 @@ export class ProjectRegistry {
 	/**
 	 * Register a project at the given path and return its UUID.
 	 * Reads the UUID from visionlog/config.yaml — the agent must have called
-	 * visionlog_init on that path first.
+	 * project_init on that path first.
 	 */
 	async register(path: string): Promise<{ id: string; path: string }> {
 		const absPath = path.startsWith("/") ? path : join(process.cwd(), path);
@@ -26,10 +26,10 @@ export class ProjectRegistry {
 		// Walk up to find visionlog root if path is a project subdir
 		const root = (await findProjectRoot(absPath)) ?? absPath;
 
-		if (!existsSync(join(root, "visionlog/config.yaml"))) {
+		if (!existsSync(join(root, ".visionlog/config.yaml"))) {
 			throw new Error(
-				`No visionlog/config.yaml found at ${root}. ` +
-				`Run 'visionlog init <project-name>' in that directory first.`
+				`No .visionlog/config.yaml found at ${root}. ` +
+				`Call project_init in that directory first.`
 			);
 		}
 
@@ -38,8 +38,8 @@ export class ProjectRegistry {
 
 		if (!id) {
 			throw new Error(
-				`visionlog/config.yaml at ${root} has no 'id' field. ` +
-				`Re-run 'visionlog init <project-name>' to generate one.`
+				`.visionlog/config.yaml at ${root} has no 'id' field. ` +
+				`Re-run project_init to generate one.`
 			);
 		}
 
@@ -67,8 +67,7 @@ export class ProjectRegistry {
 			throw new Error(
 				`Unknown project_id '${projectId}'. ` +
 				`This project hasn't been registered in this session. ` +
-				`Call visionlog_register with the project's path to register it, ` +
-				`then read visionlog/config.yaml to find the 'id' field.`
+				`Call project_set with the project's path to register it.`
 			);
 		}
 		return core;

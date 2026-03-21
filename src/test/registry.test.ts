@@ -88,7 +88,7 @@ describe("ProjectRegistry.resolve()", () => {
 			const registry = new ProjectRegistry(core);
 			const bogusId = "00000000-0000-4000-8000-000000000000";
 			expect(() => registry.resolve(bogusId)).toThrow(/Unknown project_id/);
-			expect(() => registry.resolve(bogusId)).toThrow(/visionlog_register/);
+			expect(() => registry.resolve(bogusId)).toThrow(/project_set/);
 		});
 	});
 });
@@ -118,7 +118,7 @@ describe("ProjectRegistry.register()", () => {
 		await withCore(async (core) => {
 			await withDir(async (emptyDir) => {
 				const registry = new ProjectRegistry(core);
-				await expect(registry.register(emptyDir)).rejects.toThrow(/No visionlog\/config.yaml/);
+				await expect(registry.register(emptyDir)).rejects.toThrow(/No .visionlog\/config.yaml/);
 			});
 		});
 	});
@@ -129,13 +129,13 @@ describe("ProjectRegistry.register()", () => {
 				// Manually create a config.yaml WITHOUT an id field
 				const { mkdir, readFile, writeFile } = await import("node:fs/promises");
 				const { join } = await import("node:path");
-				await mkdir(join(dir, "visionlog", "adr"), { recursive: true });
-				await mkdir(join(dir, "visionlog", "guardrails"), { recursive: true });
-				await mkdir(join(dir, "visionlog", "goals"), { recursive: true });
-				await mkdir(join(dir, "visionlog", "decisions"), { recursive: true });
-				await mkdir(join(dir, "visionlog", "sops"), { recursive: true });
+				await mkdir(join(dir, ".visionlog", "adr"), { recursive: true });
+				await mkdir(join(dir, ".visionlog", "guardrails"), { recursive: true });
+				await mkdir(join(dir, ".visionlog", "goals"), { recursive: true });
+				await mkdir(join(dir, ".visionlog", "decisions"), { recursive: true });
+				await mkdir(join(dir, ".visionlog", "sops"), { recursive: true });
 				await writeFile(
-					join(dir, "visionlog", "config.yaml"),
+					join(dir, ".visionlog", "config.yaml"),
 					`project: "old-project-no-id"\ncreated: "2024-01-01"\n`,
 				);
 				const registry = new ProjectRegistry(core);
@@ -143,7 +143,7 @@ describe("ProjectRegistry.register()", () => {
 				// auto-migrated: returns a valid UUID
 				expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 				// id is now persisted on disk
-				const onDisk = await readFile(join(dir, "visionlog", "config.yaml"), "utf8");
+				const onDisk = await readFile(join(dir, ".visionlog", "config.yaml"), "utf8");
 				expect(onDisk).toContain(id);
 			});
 		});
@@ -167,7 +167,7 @@ describe("ProjectRegistry.register() — edge cases", () => {
 			const originalId = await core.getProjectId();
 			const { unlink } = await import("node:fs/promises");
 			const { join } = await import("node:path");
-			await unlink(join(dir, "visionlog", "config.yaml"));
+			await unlink(join(dir, ".visionlog", "config.yaml"));
 			await core.init("test-project");
 			const newId = await core.getProjectId();
 			expect(newId).not.toBe(originalId);
@@ -182,7 +182,7 @@ describe("ProjectRegistry.register() — edge cases", () => {
 			// Simulate UUID rotation: delete config and re-init (generates new UUID)
 			const { unlink } = await import("node:fs/promises");
 			const { join } = await import("node:path");
-			await unlink(join(dir, "visionlog", "config.yaml"));
+			await unlink(join(dir, ".visionlog", "config.yaml"));
 			await core.init("test-project");
 
 			const { id: id2 } = await registry.register(dir);

@@ -1,15 +1,44 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
+import { cwd } from "node:process";
 import { z } from "zod";
-import type { VisionCore } from "../../core/visionlog.ts";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { VisionCore } from "../../core/visionlog.ts";
+import type { ProjectRegistry } from "../registry.ts";
 
-export function registerVisionTools(server: McpServer, core: VisionCore) {
+const projectIdParam = z.string().optional().describe("UUID from .visionlog/config.yaml. Required only in multi-project sessions. Call project_set to get a project's UUID.");
+
+export function registerVisionTools(server: McpServer, registry: ProjectRegistry) {
+	server.tool(
+		"project_set",
+		"Register a project by its filesystem path and return its UUID. Call this once per project at the start of a multi-project session, then pass the returned project_id to all subsequent tool calls targeting that project. The project must have been initialized with project_init first.",
+		{
+			path: z.string().describe("Absolute or relative path to the project directory — or any subdirectory of it. The tool will walk up to find .visionlog/config.yaml automatically."),
+		},
+		async ({ path }) => {
+			try {
+				const { id, path: registeredPath } = await registry.register(path);
+				return {
+					content: [{
+						type: "text" as const,
+						text: `Registered project at ${registeredPath}\nproject_id: ${id}\n\nPass this project_id to all visionlog tool calls targeting this project.`,
+					}],
+				};
+			} catch (err) {
+				return {
+					content: [{ type: "text" as const, text: `Error: ${(err as Error).message}` }],
+					isError: true,
+				};
+			}
+		},
+	);
+
 	server.tool(
 		"vision_view",
 		"View the project vision — the destination, north star, anti-goals, and success criteria.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const vision = await core.getVision();
 			if (!vision) return { content: [{ type: "text" as const, text: "No vision document found." }] };
 			return { content: [{ type: "text" as const, text: `# ${vision.title}\n\n${vision.body}` }] };
@@ -22,8 +51,10 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 		{
 			title: z.string().describe("Vision document title"),
 			body: z.string().describe("Markdown body"),
+			project_id: projectIdParam,
 		},
-		async ({ title, body }) => {
+		async ({ title, body, project_id }) => {
+			const core = registry.resolve(project_id);
 			await core.setVision(title, body);
 			return { content: [{ type: "text" as const, text: `Vision updated: ${title}` }] };
 		},
@@ -32,8 +63,9 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"visionlog_status",
 		"Overview of all visionlog content: goals, decisions, guardrails, SOPs, vision.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const status = await core.status();
 			const goalLine = Object.entries(status.goals.by_status).map(([s, n]) => `${s}:${n}`).join(" ");
 			const decisionLine = Object.entries(status.decisions.by_status).map(([s, n]) => `${s}:${n}`).join(" ");
@@ -51,8 +83,9 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"visionlog_boot",
 		"Call this at the start of every session. Returns active guardrails, current goal state, and a situational report — including whether backlog.md is initialized. One call orients the agent completely.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const sections: string[] = [];
 
 			// 1. Guardrails — full body so agent can reason, not just comply
@@ -80,15 +113,14 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 					`\n\nAsk the user which goal to advance before starting work.`,
 				);
 			} else {
-				sections.push("## No Goals\nNo goals defined. Run `visionlog_init` or create goals before working.");
+				sections.push("## No Goals\nNo goals defined. Run `project_init` or create goals before working.");
 			}
 
 			// 3. Backlog.md check
-			const projectRoot = (core as any).fs?.root ?? "";
 			const backlogExists =
-				existsSync(join(projectRoot, "backlog")) ||
-				existsSync(join(projectRoot, ".backlog")) ||
-				existsSync(join(projectRoot, "backlog.md"));
+				existsSync(join(core.root, "backlog")) ||
+				existsSync(join(core.root, ".backlog")) ||
+				existsSync(join(core.root, "backlog.md"));
 			if (!backlogExists) {
 				sections.push(
 					"## ⚠ backlog.md NOT initialized\n" +
@@ -106,8 +138,9 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"visionlog_guide",
 		"Call this at the start of every session, alongside visionlog_boot. Returns the full strategic context: vision, key decisions, and goal map — the Who/What/When/Where/Why of this project. visionlog_boot gives you constraints and state. This gives you meaning and direction. Both are required to work effectively.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const sections: string[] = [];
 			const missing: string[] = [];
 
@@ -169,16 +202,27 @@ export function registerVisionTools(server: McpServer, core: VisionCore) {
 	);
 
 	server.tool(
-		"visionlog_init",
-		"Initialize visionlog in the current project.",
+		"project_init",
+		"Initialize visionlog in a project directory. Pass 'path' to target a specific directory; omit to use the server's default (cwd at startup). After init, call project_set with the same path to register it for this session.",
 		{
 			project_name: z.string().describe("Project name"),
+			path: z.string().optional().describe("Absolute path to the project directory to initialize. Defaults to the server's working directory."),
 			backlog_path: z.string().optional().describe("Relative path to backlog directory"),
 		},
-		async ({ project_name, backlog_path }) => {
+		async ({ project_name, path: targetPath, backlog_path }) => {
+			const absPath = targetPath
+				? (targetPath.startsWith("/") ? targetPath : join(cwd(), targetPath))
+				: null;
+			const core = absPath ? new VisionCore(absPath) : registry.resolve();
 			await core.init(project_name, backlog_path);
+			const id = await core.getProjectId();
+			if (absPath) {
+				await registry.register(absPath);
+			} else {
+				await registry.autoRegisterDefault();
+			}
 			return {
-				content: [{ type: "text" as const, text: `Initialized visionlog for "${project_name}"` }],
+				content: [{ type: "text" as const, text: `Initialized visionlog for "${project_name}" at ${core.root}\nproject_id: ${id}\n\nCall project_set with the same path to register it for this session.` }],
 			};
 		},
 	);

@@ -1,18 +1,21 @@
 import { z } from "zod";
-import type { VisionCore } from "../../core/visionlog.ts";
 import type { Goal } from "../../types/index.ts";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ProjectRegistry } from "../registry.ts";
 
 const goalStatusSchema = z.enum(["locked", "available", "in-progress", "complete"]);
+const projectIdParam = z.string().optional().describe("UUID from .visionlog/config.yaml. Required only in multi-project sessions. Call project_set to get a project's UUID.");
 
-export function registerGoalTools(server: McpServer, core: VisionCore) {
+export function registerGoalTools(server: McpServer, registry: ProjectRegistry) {
 	server.tool(
 		"goal_list",
 		"List all goals in the vision DAG. Optionally filter by status.",
 		{
 			status: goalStatusSchema.optional().describe("Filter by lifecycle status"),
+			project_id: projectIdParam,
 		},
-		async ({ status }) => {
+		async ({ status, project_id }) => {
+			const core = registry.resolve(project_id);
 			let goals = await core.listGoals();
 			if (status) goals = goals.filter((g) => g.status === status);
 			const lines = goals.map((g) => {
@@ -26,8 +29,12 @@ export function registerGoalTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"goal_view",
 		"View a single goal in full, including exit criteria and dependencies.",
-		{ id: z.string().describe("Goal ID (e.g. GOAL-001)") },
-		async ({ id }) => {
+		{
+			id: z.string().describe("Goal ID (e.g. GOAL-001)"),
+			project_id: projectIdParam,
+		},
+		async ({ id, project_id }) => {
+			const core = registry.resolve(project_id);
 			const goal = await core.getGoal(id);
 			if (!goal) return { content: [{ type: "text" as const, text: `Goal ${id} not found.` }] };
 			const text = [
@@ -55,8 +62,10 @@ export function registerGoalTools(server: McpServer, core: VisionCore) {
 			unlocks: z.array(z.string()).optional().describe("Goal IDs this unlocks when complete"),
 			backlog_tag: z.string().optional().describe("backlog.md milestone or label to link"),
 			body: z.string().optional().describe("Markdown body"),
+			project_id: projectIdParam,
 		},
-		async ({ title, status, depends_on, unlocks, backlog_tag, body }) => {
+		async ({ title, status, depends_on, unlocks, backlog_tag, body, project_id }) => {
+			const core = registry.resolve(project_id);
 			const goal = await core.createGoal({
 				title,
 				status: status as Goal["status"] | undefined,
@@ -80,8 +89,10 @@ export function registerGoalTools(server: McpServer, core: VisionCore) {
 			unlocks: z.array(z.string()).optional(),
 			backlog_tag: z.string().optional(),
 			body: z.string().optional(),
+			project_id: projectIdParam,
 		},
-		async ({ id, ...updates }) => {
+		async ({ id, project_id, ...updates }) => {
+			const core = registry.resolve(project_id);
 			const goal = await core.updateGoal(id, updates as Partial<Omit<Goal, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${goal.id}: ${goal.title} [${goal.status}]` }] };
 		},
@@ -90,8 +101,9 @@ export function registerGoalTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"goal_unlockable",
 		"List goals that are currently locked but whose dependencies are all complete.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const goals = await core.unlockableGoals();
 			if (!goals.length) return { content: [{ type: "text" as const, text: "No goals ready to unlock." }] };
 			const text = goals.map((g) => `${g.id} ${g.title}`).join("\n");

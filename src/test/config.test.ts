@@ -75,9 +75,9 @@ describe("legacy config migration", () => {
 
 		const dir = await mkdtemp(join(tmpdir(), "visionlog-legacy-"));
 		try {
-			await mkdir(join(dir, "visionlog"), { recursive: true });
+			await mkdir(join(dir, ".visionlog"), { recursive: true });
 			await writeFile(
-				join(dir, "visionlog", "config.yaml"),
+				join(dir, ".visionlog", "config.yaml"),
 				`project: "legacy-project"\ncreated: "2024-01-01"\n`,
 			);
 			const core = new VisionCore(dir);
@@ -87,7 +87,7 @@ describe("legacy config migration", () => {
 			expect(id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
 
 			// UUID is persisted on disk
-			const onDisk = await readFile(join(dir, "visionlog", "config.yaml"), "utf8");
+			const onDisk = await readFile(join(dir, ".visionlog", "config.yaml"), "utf8");
 			expect(onDisk).toContain(id);
 
 			// Second read returns the same UUID (not a new one each time)

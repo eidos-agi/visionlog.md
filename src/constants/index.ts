@@ -1,4 +1,4 @@
-export const VISIONLOG_DIR = "visionlog";
+export const VISIONLOG_DIR = ".visionlog";
 
 export const DIRECTORIES = {
 	ROOT: VISIONLOG_DIR,

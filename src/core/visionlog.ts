@@ -1,5 +1,6 @@
 import { join } from "node:path";
 import { VisionFS } from "../file-system/operations.ts";
+import { BUNDLED_SOPS } from "../defaults/bundled.ts";
 import type {
 	Decision,
 	DecisionCreateInput,
@@ -17,8 +18,10 @@ import type {
 export class VisionCore {
 	private readonly fs: VisionFS;
 	private readonly _createQueues = new Map<string, Promise<unknown>>();
+	readonly root: string;
 
 	constructor(projectRoot: string) {
+		this.root = projectRoot;
 		this.fs = new VisionFS(projectRoot);
 	}
 
@@ -38,11 +41,32 @@ export class VisionCore {
 
 	async init(projectName: string, backlogPath?: string): Promise<void> {
 		await this.fs.init(projectName, backlogPath);
+		await this.seedDefaultSops();
+	}
+
+	/**
+	 * Seeds the three trilogy operational SOPs into a freshly initialized project.
+	 * These are meta-SOPs — they describe how to use the trilogy correctly, not
+	 * what this project does. Every project gets them on init. Idempotent: skips
+	 * seeding if any SOPs already exist (preserves custom setups on re-init).
+	 */
+	async seedDefaultSops(): Promise<void> {
+		const existing = await this.listSops();
+		if (existing.length > 0) return;
+
+		for (const sop of BUNDLED_SOPS) {
+			await this.createSop(sop);
+		}
 	}
 
 	async isInitialized(): Promise<boolean> {
 		return this.fs.isInitialized();
 	}
+
+	async getProjectId(): Promise<string> {
+		return this.fs.getProjectId();
+	}
+
 
 	// ─── Goals ───────────────────────────────────────────────────────────────
 
@@ -105,6 +129,7 @@ export class VisionCore {
 				date: new Date().toISOString().slice(0, 10),
 				supersedes: input.supersedes,
 				relates_to: input.relates_to ?? [],
+				...(input.source_research_id ? { source_research_id: input.source_research_id } : {}),
 				body:
 					input.body ??
 					`## Context\n\n\n\n## Decision\n\n\n\n## Consequences\n\n### Positive\n\n- \n\n### Negative\n\n- \n`,
@@ -276,12 +301,12 @@ export class VisionCore {
 	}
 }
 
-/** Resolve project root from a starting directory (walks up looking for visionlog/config.yaml) */
+/** Resolve project root from a starting directory (walks up looking for .visionlog/config.yaml) */
 export async function findProjectRoot(startDir: string): Promise<string | null> {
 	const { existsSync } = await import("node:fs");
 	let dir = startDir;
 	for (let i = 0; i < 10; i++) {
-		if (existsSync(join(dir, "visionlog/config.yaml"))) return dir;
+		if (existsSync(join(dir, ".visionlog/config.yaml"))) return dir;
 		const parent = join(dir, "..");
 		if (parent === dir) break;
 		dir = parent;

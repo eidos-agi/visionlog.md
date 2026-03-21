@@ -105,6 +105,7 @@ export function parseConfig(yamlContent: string): VisionlogConfig {
 		: `---\n${yamlContent}\n---`;
 	const { data } = matter(normalised);
 	return {
+		id: data.id ? String(data.id) : "",
 		project: String(data.project ?? ""),
 		backlog_path: data.backlog_path ? String(data.backlog_path) : undefined,
 		created: parseDate(data.created),

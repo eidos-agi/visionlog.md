@@ -1,14 +1,20 @@
 import { z } from "zod";
-import type { VisionCore } from "../../core/visionlog.ts";
 import type { Guardrail } from "../../types/index.ts";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import type { ProjectRegistry } from "../registry.ts";
 
-export function registerGuardrailTools(server: McpServer, core: VisionCore) {
+const projectIdParam = z.string().optional().describe("UUID from .visionlog/config.yaml. Required only in multi-project sessions. Call project_set to get a project's UUID.");
+
+export function registerGuardrailTools(server: McpServer, registry: ProjectRegistry) {
 	server.tool(
 		"guardrail_list",
 		"List all active guardrails — constraints the system must never violate.",
-		{ include_retired: z.boolean().optional().describe("Include retired guardrails (default: false)") },
-		async ({ include_retired }) => {
+		{
+			include_retired: z.boolean().optional().describe("Include retired guardrails (default: false)"),
+			project_id: projectIdParam,
+		},
+		async ({ include_retired, project_id }) => {
+			const core = registry.resolve(project_id);
 			let guards = await core.listGuardrails();
 			if (!include_retired) guards = guards.filter((g) => g.status === "active");
 			const lines = guards.map((g) => {
@@ -22,8 +28,12 @@ export function registerGuardrailTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"guardrail_view",
 		"View a guardrail in full, including the rule, rationale, and violation examples.",
-		{ id: z.string().describe("Guardrail ID (e.g. GUARD-001)") },
-		async ({ id }) => {
+		{
+			id: z.string().describe("Guardrail ID (e.g. GUARD-001)"),
+			project_id: projectIdParam,
+		},
+		async ({ id, project_id }) => {
+			const core = registry.resolve(project_id);
 			const g = await core.getGuardrail(id);
 			if (!g) return { content: [{ type: "text" as const, text: `Guardrail ${id} not found.` }] };
 			const text = [
@@ -47,8 +57,10 @@ export function registerGuardrailTools(server: McpServer, core: VisionCore) {
 			status: z.enum(["active", "retired"]).optional().describe("Default: active"),
 			adr: z.string().optional().describe("ADR-xxx that established this guardrail"),
 			body: z.string().optional().describe("Markdown body with ## Rule, ## Why, ## Violation Examples"),
+			project_id: projectIdParam,
 		},
-		async ({ title, status, adr, body }) => {
+		async ({ title, status, adr, body, project_id }) => {
+			const core = registry.resolve(project_id);
 			const g = await core.createGuardrail({
 				title,
 				status: status as Guardrail["status"] | undefined,
@@ -68,8 +80,10 @@ export function registerGuardrailTools(server: McpServer, core: VisionCore) {
 			title: z.string().optional(),
 			adr: z.string().optional(),
 			body: z.string().optional(),
+			project_id: projectIdParam,
 		},
-		async ({ id, ...updates }) => {
+		async ({ id, project_id, ...updates }) => {
+			const core = registry.resolve(project_id);
 			const g = await core.updateGuardrail(id, updates as Partial<Omit<Guardrail, "id" | "type">>);
 			return { content: [{ type: "text" as const, text: `Updated ${g.id}: ${g.title} [${g.status}]` }] };
 		},
@@ -78,8 +92,9 @@ export function registerGuardrailTools(server: McpServer, core: VisionCore) {
 	server.tool(
 		"guardrail_inject",
 		"Return all active guardrails formatted for injection into an AI system prompt.",
-		{},
-		async () => {
+		{ project_id: projectIdParam },
+		async ({ project_id }) => {
+			const core = registry.resolve(project_id);
 			const guards = (await core.listGuardrails()).filter((g) => g.status === "active");
 			if (!guards.length) return { content: [{ type: "text" as const, text: "No active guardrails." }] };
 			const lines = [

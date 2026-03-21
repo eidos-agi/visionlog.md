@@ -91,7 +91,11 @@ export function serializeVision(v: Vision): string {
 }
 
 export function serializeConfig(config: VisionlogConfig): string {
-	const lines = [`project: ${JSON.stringify(config.project)}`, `created: ${JSON.stringify(config.created)}`];
+	const lines = [
+		`id: ${JSON.stringify(config.id ?? "")}`,
+		`project: ${JSON.stringify(config.project)}`,
+		`created: ${JSON.stringify(config.created)}`,
+	];
 	if (config.backlog_path) lines.push(`backlog_path: ${JSON.stringify(config.backlog_path)}`);
 	return lines.join("\n") + "\n";
 }
