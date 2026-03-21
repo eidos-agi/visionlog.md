@@ -12,6 +12,13 @@ export const BUNDLED_SCHEMA_VERSION = 1;
 export const DEFAULTS_REMOTE_URL =
 	"https://raw.githubusercontent.com/eidos-agi/visionlog.md/main/defaults.json";
 
+/**
+ * GitHub API fallback URL — works for private repos when VISIONLOG_GITHUB_TOKEN is set.
+ * Content is base64-encoded in the response; fetchRemoteDefaults handles decoding.
+ */
+export const DEFAULTS_API_URL =
+	"https://api.github.com/repos/eidos-agi/visionlog.md/contents/defaults.json";
+
 export interface DefaultSop {
 	title: string;
 	status: "active" | "draft" | "deprecated";

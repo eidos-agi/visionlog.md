@@ -5,6 +5,7 @@ import {
 	BUNDLED_DEFAULTS,
 	BUNDLED_SCHEMA_VERSION,
 	DEFAULTS_REMOTE_URL,
+	DEFAULTS_API_URL,
 	type DefaultSop,
 	type DefaultsManifest,
 } from "../../defaults/bundled.ts";
@@ -16,14 +17,32 @@ const projectIdParam = z
 		"UUID from .visionlog/config.yaml. Required only in multi-project sessions.",
 	);
 
-/** Fetch the remote defaults manifest. Returns null on network failure. */
+/** Fetch the remote defaults manifest. Returns null on network failure.
+ *  Tries raw URL first; falls back to GitHub API if VISIONLOG_GITHUB_TOKEN is set.
+ */
 async function fetchRemoteDefaults(): Promise<DefaultsManifest | null> {
 	try {
-		const res = await fetch(DEFAULTS_REMOTE_URL, {
+		// Try raw URL first (works for public repos)
+		const rawRes = await fetch(DEFAULTS_REMOTE_URL, {
 			signal: AbortSignal.timeout(8000),
 		});
-		if (!res.ok) return null;
-		return (await res.json()) as DefaultsManifest;
+		if (rawRes.ok) return (await rawRes.json()) as DefaultsManifest;
+
+		// Fall back to GitHub API with token (works for private repos)
+		const token = process.env.VISIONLOG_GITHUB_TOKEN;
+		if (!token) return null;
+
+		const apiRes = await fetch(DEFAULTS_API_URL, {
+			headers: {
+				Authorization: `Bearer ${token}`,
+				Accept: "application/vnd.github.v3+json",
+			},
+			signal: AbortSignal.timeout(8000),
+		});
+		if (!apiRes.ok) return null;
+		const apiData = (await apiRes.json()) as { content: string };
+		const decoded = Buffer.from(apiData.content, "base64").toString("utf-8");
+		return JSON.parse(decoded) as DefaultsManifest;
 	} catch {
 		return null;
 	}
