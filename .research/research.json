@@ -1,0 +1,35 @@
+{
+  "id": "24e3db0d-904c-45cb-97e7-914ba6822863",
+  "version": "0.1.0",
+  "projectName": "trilogy-token-cost-vs-governance-value",
+  "created": "2026-03-22",
+  "phase": "decided",
+  "transitions": [
+    {
+      "phase": "research",
+      "date": "2026-03-22"
+    },
+    {
+      "phase": "locked",
+      "date": "2026-03-22",
+      "note": "Criteria weights frozen"
+    },
+    {
+      "phase": "reviewed",
+      "date": "2026-03-22",
+      "note": "Peer review by PAL (Gemini 2.5 Pro)"
+    },
+    {
+      "phase": "scored",
+      "date": "2026-03-22",
+      "note": "Scored candidate: source-research-id"
+    },
+    {
+      "phase": "decided",
+      "date": "2026-03-22",
+      "note": "Build only features scoring ≥30: blocked_reason field (TASK-0027), open questions construct (TASK-00"
+    }
+  ],
+  "question": "For each trilogy feature (visionlog, ike.md, research.md tools and constructs), what is the governance value delivered relative to the token cost imposed per session — and which features are cost-justified at real usage scales?",
+  "context": "The trilogy is three MCP tools for AI agent orchestration:\n- research.md: evidence-graded decision making\n- visionlog: governance layer (vision, goals, guardrails, SOPs, ADRs)\n- ike.md: task execution (milestones, tasks, completion tracking)\n\nThe problem: governance infrastructure costs tokens. Every guardrail read, every SOP surfaced, every boot sequence run — these consume tokens before any real work happens. If the overhead of the governance layer exceeds the value it provides on a given task, the process is broken. We may be constructing a jungle when we need a banana.\n\nDuring a design session (2026-03-21), we caught ourselves about to add:\n- guardrail_inject at every session start\n- expanded visionlog_boot reading vision + goals + guardrails + SOPs\n- open questions construct (TASK-0028)\n- defaults_check on init\n- Initiative layer (cross-cutting abstraction across all three tools)\n\nBefore building any of these, we want to score them honestly.\n\nFeatures to evaluate:\n1. guardrail_inject at session start — surfaces active guardrails into context automatically\n2. visionlog_boot full read — reads vision + goals + guardrails + SOPs before work begins\n3. defaults_check on init — fetches remote manifest and diffs against local\n4. sop_list before every task — agent reads all SOPs before starting any task\n5. open questions construct — named unknowns stored in visionlog\n6. blocked_reason field on ike.md tasks — structured reason when a task is blocked\n7. source_research_id on ADRs — links visionlog decision back to research.md project\n8. visionlog_goal_id on ike.md tasks — links execution back to visionlog goal\n9. Initiative layer — cross-cutting concept unifying artifacts across all three tools\n\nScoring dimensions:\n- Token cost per invocation (estimated tokens consumed)\n- Invocation frequency (every session, every task, on demand, one-time)\n- Aggregate cost per 100 tasks (frequency × cost)\n- Governance value (1-5): how much does this prevent bad decisions or lost context?\n- Break-even: at what project scale does this feature pay for itself?\n\nThe goal is a ranked list of features by value/cost ratio, so we build the high-leverage ones and drop or defer the low-leverage ones. This research project lives in the visionlog.md repo itself — the governance tool governing its own governance overhead."
+}

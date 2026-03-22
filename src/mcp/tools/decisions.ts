@@ -42,6 +42,7 @@ export function registerDecisionTools(server: McpServer, registry: ProjectRegist
 				`**Status**: ${d.status}  |  **Date**: ${d.date}`,
 				d.supersedes ? `**Supersedes**: ${d.supersedes}` : null,
 				d.relates_to?.length ? `**Relates to**: ${d.relates_to.join(", ")}` : null,
+				d.source_research_id ? `**Research source**: ${d.source_research_id}` : null,
 				"",
 				d.body,
 			]
@@ -59,16 +60,18 @@ export function registerDecisionTools(server: McpServer, registry: ProjectRegist
 			status: decisionStatusSchema.optional().describe("Default: proposed"),
 			supersedes: z.string().optional().describe("ADR ID this supersedes"),
 			relates_to: z.array(z.string()).optional().describe("Related entity IDs"),
+			source_research_id: z.string().optional().describe("research.md project GUID that produced this decision. Optional — only set if you ran this through research.md first."),
 			body: z.string().optional().describe("Markdown body with ## Context, ## Decision, ## Consequences"),
 			project_id: projectIdParam,
 		},
-		async ({ title, status, supersedes, relates_to, body, project_id }) => {
+		async ({ title, status, supersedes, relates_to, source_research_id, body, project_id }) => {
 			const core = registry.resolve(project_id);
 			const d = await core.createDecision({
 				title,
 				status: status as Decision["status"] | undefined,
 				supersedes,
 				relates_to,
+				source_research_id,
 				body,
 			});
 			return { content: [{ type: "text" as const, text: `Created ${d.id}: ${d.title} [${d.status}]` }] };

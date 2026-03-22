@@ -6,6 +6,17 @@ import type { ProjectRegistry } from "../registry.ts";
 const goalStatusSchema = z.enum(["locked", "available", "in-progress", "complete"]);
 const projectIdParam = z.string().optional().describe("UUID from .visionlog/config.yaml. Required only in multi-project sessions. Call project_set to get a project's UUID.");
 
+/**
+ * MCP clients sometimes serialize arrays as JSON strings.
+ * This preprocessor handles both `["A","B"]` (array) and `'["A","B"]'` (string).
+ */
+const arrayOfStrings = z.preprocess((val) => {
+	if (typeof val === "string") {
+		try { return JSON.parse(val); } catch { return val ? [val] : []; }
+	}
+	return val;
+}, z.array(z.string()));
+
 export function registerGoalTools(server: McpServer, registry: ProjectRegistry) {
 	server.tool(
 		"goal_list",
@@ -58,8 +69,8 @@ export function registerGoalTools(server: McpServer, registry: ProjectRegistry) 
 		{
 			title: z.string().describe("Short descriptive title"),
 			status: goalStatusSchema.optional().describe("Default: locked"),
-			depends_on: z.array(z.string()).optional().describe('Goal IDs this depends on'),
-			unlocks: z.array(z.string()).optional().describe("Goal IDs this unlocks when complete"),
+			depends_on: arrayOfStrings.optional().describe('Goal IDs this depends on'),
+			unlocks: arrayOfStrings.optional().describe("Goal IDs this unlocks when complete"),
 			backlog_tag: z.string().optional().describe("backlog.md milestone or label to link"),
 			body: z.string().optional().describe("Markdown body"),
 			project_id: projectIdParam,
@@ -85,8 +96,8 @@ export function registerGoalTools(server: McpServer, registry: ProjectRegistry) 
 			id: z.string().describe("Goal ID (e.g. GOAL-001)"),
 			status: goalStatusSchema.optional(),
 			title: z.string().optional(),
-			depends_on: z.array(z.string()).optional(),
-			unlocks: z.array(z.string()).optional(),
+			depends_on: arrayOfStrings.optional(),
+			unlocks: arrayOfStrings.optional(),
 			backlog_tag: z.string().optional(),
 			body: z.string().optional(),
 			project_id: projectIdParam,

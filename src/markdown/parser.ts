@@ -40,6 +40,7 @@ export function parseDecision(content: string, filePath?: string): Decision {
 		date: parseDate(data.date),
 		supersedes: data.supersedes ? String(data.supersedes) : undefined,
 		relates_to: parseStringArray(data.relates_to),
+		source_research_id: data.source_research_id ? String(data.source_research_id) : undefined,
 		body: body.trim(),
 		filePath,
 	};

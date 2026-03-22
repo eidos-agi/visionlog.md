@@ -1,6 +1,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { VisionCore, findProjectRoot } from "../core/visionlog.ts";
+import { VISIONLOG_DIR } from "../constants/index.ts";
 
 /**
  * In-process registry of UUID → VisionCore.
@@ -56,11 +57,22 @@ export class ProjectRegistry {
 
 	/**
 	 * Resolve a VisionCore by project_id.
-	 * Falls back to the default (cwd-detected) core if project_id is absent.
+	 * Falls back to the default (cwd/MCP_PROJECT_ROOT-anchored) core if project_id is absent —
+	 * but only if that default points to an initialized visionlog. Otherwise throws loudly
+	 * so agents discover the misconfiguration instead of silently writing to the wrong place.
 	 * Throws an instructional error if project_id is provided but not registered.
 	 */
 	resolve(projectId?: string): VisionCore {
-		if (!projectId) return this.defaultCore;
+		if (!projectId) {
+			const configPath = join(this.defaultCore.root, VISIONLOG_DIR, "config.yaml");
+			if (!existsSync(configPath)) {
+				throw new Error(
+					`visionlog: no project registered for this session and no initialized visionlog found at ${this.defaultCore.root}.\n` +
+					`Call project_set("<path>") to register a project, or set MCP_PROJECT_ROOT to point to an initialized project directory.`
+				);
+			}
+			return this.defaultCore;
+		}
 
 		const core = this.map.get(projectId);
 		if (!core) {

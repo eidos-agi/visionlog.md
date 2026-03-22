@@ -48,6 +48,7 @@ export interface Decision {
 	date: string;
 	supersedes?: string; // ADR-xxx
 	relates_to?: string[]; // GOAL-xxx, GUARD-xxx
+	source_research_id?: string; // research.md project GUID that earned this decision
 	body: string; // ## Context, ## Decision, ## Consequences
 	filePath?: string;
 }
@@ -57,6 +58,7 @@ export interface DecisionCreateInput {
 	status?: DecisionStatus;
 	supersedes?: string;
 	relates_to?: string[];
+	source_research_id?: string;
 	body?: string;
 }
 

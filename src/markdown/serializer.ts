@@ -41,6 +41,7 @@ export function serializeDecision(decision: Decision): string {
 		date: decision.date,
 		...(decision.supersedes ? { supersedes: decision.supersedes } : {}),
 		...(decision.relates_to?.length ? { relates_to: decision.relates_to } : {}),
+		...(decision.source_research_id ? { source_research_id: decision.source_research_id } : {}),
 	});
 	return `${fm}\n\n${decision.body}\n`;
 }
