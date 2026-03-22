@@ -36,3 +36,4 @@ htmlcov/
 .ruff_cache/
 
 .mcp.json
+package-lock.json
