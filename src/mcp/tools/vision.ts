@@ -82,56 +82,91 @@ export function registerVisionTools(server: McpServer, registry: ProjectRegistry
 
 	server.tool(
 		"visionlog_boot",
-		"Call this at the start of every session. Returns active guardrails, current goal state, and a situational report — including whether backlog.md is initialized. One call orients the agent completely.",
+		"Lightweight session start. Returns guardrail names, goal statuses, SOP triggers, and tooling state — enough to orient without burning tokens. Call guardrail_view, goal_view, or visionlog_guide when you need full details.",
 		{ project_id: projectIdParam },
 		async ({ project_id }) => {
 			const core = registry.resolve(project_id);
-			const sections: string[] = [];
+			const lines: string[] = [];
 
-			// 1. Guardrails — full body so agent can reason, not just comply
+			// 1. Vision — title only
+			const vision = await core.getVision();
+			if (vision?.title) {
+				lines.push(`**Vision:** ${vision.title}`);
+			}
+
+			// 2. Guardrails — titles only
 			const guards = (await core.listGuardrails()).filter((g) => g.status === "active");
 			if (guards.length) {
-				const guardBlocks = guards.map((g) => {
-					const body = g.body?.trim() ? `\n${g.body.trim()}` : "";
-					return `### ${g.id}: ${g.title}${body}`;
-				});
-				sections.push("## Guardrails (MUST be respected at all times)\n\n" + guardBlocks.join("\n\n"));
+				lines.push("");
+				lines.push(`**Guardrails (${guards.length})** — call guardrail_view before any action that might violate:`);
+				for (const g of guards) {
+					lines.push(`  - ${g.id}: ${g.title}`);
+				}
 			}
 
-			// 2. Active goal
+			// 3. Goals — status counts + active/available names
 			const goals = await core.listGoals();
-			const active = goals.filter((g) => g.status === "in-progress");
-			const available = goals.filter((g) => g.status === "available");
-			if (active.length) {
-				const g = active[0];
-				const body = g.body?.trim() ? `\n\n${g.body.trim()}` : "";
-				sections.push(`## Active Goal\n**${g.id}**: ${g.title}${body}`);
-			} else if (available.length) {
-				sections.push(
-					`## No Active Goal\nAvailable to start:\n` +
-					available.map((g) => `- ${g.id}: ${g.title}`).join("\n") +
-					`\n\nAsk the user which goal to advance before starting work.`,
-				);
+			if (goals.length) {
+				const counts: Record<string, number> = {};
+				for (const g of goals) counts[g.status] = (counts[g.status] || 0) + 1;
+				const active = goals.filter((g) => g.status === "in-progress");
+				const available = goals.filter((g) => g.status === "available");
+
+				lines.push("");
+				const statusParts = Object.entries(counts).map(([s, n]) => `${n} ${s}`);
+				lines.push(`**Goals (${goals.length}):** ${statusParts.join(", ")}`);
+
+				if (active.length) {
+					lines.push(`  Active: ${active.map((g) => `${g.id}: ${g.title}`).join(", ")}`);
+				}
+				if (available.length) {
+					lines.push(`  Ready: ${available.map((g) => `${g.id}: ${g.title}`).join(", ")}`);
+				}
 			} else {
-				sections.push("## No Goals\nNo goals defined. Run `project_init` or create goals before working.");
+				lines.push("");
+				lines.push("**Goals:** none — create goals before working");
 			}
 
-			// 3. Backlog.md check
+			// 4. SOPs — titles + trigger condition (first "When" line from body)
+			const sops = (await core.listSops()).filter((s) => s.status === "active");
+			if (sops.length) {
+				lines.push("");
+				lines.push(`**SOPs (${sops.length}):**`);
+				for (const s of sops) {
+					const bodyLines = s.body?.split("\n") || [];
+					const trigger = bodyLines.find((l) => l.trim().toLowerCase().startsWith("when "))?.trim();
+					lines.push(`  - ${s.id}: ${s.title}${trigger ? ` — ${trigger}` : ""}`);
+				}
+			}
+
+			// 5. ADR count
+			const decisions = await core.listDecisions();
+			const accepted = decisions.filter((d) => d.status === "accepted");
+			if (accepted.length) {
+				lines.push("");
+				lines.push(`**ADRs:** ${accepted.length} accepted — call decision_list for details`);
+			}
+
+			// 6. Tooling state
 			const backlogExists =
 				existsSync(join(core.root, "backlog")) ||
 				existsSync(join(core.root, ".backlog")) ||
 				existsSync(join(core.root, "backlog.md"));
-			if (!backlogExists) {
-				sections.push(
-					"## ⚠ backlog.md NOT initialized\n" +
-					"GUARD-003 requires all work to be tracked in a backlog.md task. " +
-					"Run `backlog init` in this project before starting any work.",
-				);
+			const ikeExists = existsSync(join(core.root, ".ike"));
+			const researchExists = existsSync(join(core.root, ".research")) ||
+				existsSync(join(core.root, "research"));
+			lines.push("");
+			const tools: string[] = [];
+			if (ikeExists) tools.push("ike.md ✓");
+			if (backlogExists) tools.push("backlog.md ✓");
+			if (researchExists) tools.push("research.md ✓");
+			if (tools.length) {
+				lines.push(`**Trilogy:** ${tools.join(" | ")}`);
 			} else {
-				sections.push("## backlog.md ✓\nConfirm there is an active task before writing code. Create one with `task_create` if needed.");
+				lines.push("**Trilogy:** no task tracking initialized");
 			}
 
-			return { content: [{ type: "text" as const, text: sections.join("\n\n") }] };
+			return { content: [{ type: "text" as const, text: lines.join("\n") }] };
 		},
 	);
 
