@@ -1,0 +1,17 @@
+{
+  "tool": "vision_view",
+  "fixture_id": "003-after-overwrite",
+  "input": {
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "# Second Vision\n\nOverwritten content"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

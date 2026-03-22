@@ -1,0 +1,20 @@
+{
+  "tool": "goal_update",
+  "fixture_id": "003-update-title-body",
+  "input": {
+    "goal_id": "GOAL-001",
+    "title": "Updated title",
+    "body": "Updated body",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated GOAL-001: Updated title → locked"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

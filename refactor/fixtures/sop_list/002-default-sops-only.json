@@ -1,0 +1,17 @@
+{
+  "tool": "sop_list",
+  "fixture_id": "002-default-sops-only",
+  "input": {
+    "project_id": "empty"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "[active] **SOP-001**: Goal Decomposition\n[active] **SOP-002**: Completion Feedback\n[active] **SOP-003**: Blocked Task Escalation"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

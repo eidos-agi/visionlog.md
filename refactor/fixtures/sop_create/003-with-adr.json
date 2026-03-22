@@ -1,0 +1,20 @@
+{
+  "tool": "sop_create",
+  "fixture_id": "003-with-adr",
+  "input": {
+    "title": "With ADR",
+    "adr": "ADR-001",
+    "body": "Linked to decision.",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created SOP-005: With ADR [draft]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

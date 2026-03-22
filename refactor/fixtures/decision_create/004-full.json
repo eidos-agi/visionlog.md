@@ -1,0 +1,26 @@
+{
+  "tool": "decision_create",
+  "fixture_id": "004-full",
+  "input": {
+    "title": "Full ADR",
+    "status": "accepted",
+    "supersedes": "ADR-000",
+    "relates_to": [
+      "GOAL-001",
+      "GUARD-001"
+    ],
+    "source_research_id": "research-uuid-123",
+    "body": "## Context\n\nFull context.\n\n## Decision\n\nDo it.\n\n## Consequences\n\n### Positive\n\n- Good\n\n### Negative\n\n- Bad",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created ADR-001: Full ADR [accepted]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

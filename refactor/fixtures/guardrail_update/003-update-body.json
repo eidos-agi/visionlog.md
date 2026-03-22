@@ -1,0 +1,19 @@
+{
+  "tool": "guardrail_update",
+  "fixture_id": "003-update-body",
+  "input": {
+    "guardrail_id": "GUARD-001",
+    "body": "## Rule\n\nUpdated rule content.",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated GUARD-001: 絶対に削除しない → active"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

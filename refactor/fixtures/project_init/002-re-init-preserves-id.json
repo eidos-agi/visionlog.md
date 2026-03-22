@@ -1,0 +1,18 @@
+{
+  "tool": "project_init",
+  "fixture_id": "002-re-init-preserves-id",
+  "input": {
+    "project_name": "re-init-test",
+    "path": "/var/folders/x_/j3nb_xdn5pq2845d4xsd_rn80000gn/T/vl-edge-f7YwVp"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Re-init preserved UUID"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

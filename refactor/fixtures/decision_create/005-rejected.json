@@ -1,0 +1,19 @@
+{
+  "tool": "decision_create",
+  "fixture_id": "005-rejected",
+  "input": {
+    "title": "Bad idea",
+    "status": "rejected",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created ADR-002: Bad idea [rejected]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

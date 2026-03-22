@@ -1,0 +1,20 @@
+{
+  "tool": "sop_create",
+  "fixture_id": "002-deprecated",
+  "input": {
+    "title": "Old process",
+    "status": "deprecated",
+    "body": "Don't use this.",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created SOP-004: Old process [deprecated]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

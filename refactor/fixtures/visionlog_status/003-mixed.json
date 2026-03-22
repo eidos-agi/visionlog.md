@@ -1,0 +1,17 @@
+{
+  "tool": "visionlog_status",
+  "fixture_id": "003-mixed",
+  "input": {
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Goals (7): locked:5 in-progress:1 complete:1\nDecisions (2): accepted:1 superseded:1\nGuardrails: 1 active / 2 total\nSOPs: 4 active / 5 total\nVision: set"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

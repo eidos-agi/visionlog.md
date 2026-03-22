@@ -1,0 +1,19 @@
+{
+  "tool": "goal_create",
+  "fixture_id": "011-in-progress",
+  "input": {
+    "title": "In progress goal",
+    "status": "in-progress",
+    "project_id": "eed84e89-a48d-4547-a156-e52d8743899a"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created GOAL-004: In progress goal [in-progress]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}
