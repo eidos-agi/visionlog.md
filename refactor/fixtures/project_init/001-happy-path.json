@@ -1,0 +1,18 @@
+{
+  "tool": "project_init",
+  "fixture_id": "001-happy-path",
+  "input": {
+    "project_name": "test-project",
+    "path": "/var/folders/x_/j3nb_xdn5pq2845d4xsd_rn80000gn/T/vl-fix-ZCFQCa"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Initialized visionlog for \"test-project\" at /var/folders/x_/j3nb_xdn5pq2845d4xsd_rn80000gn/T/vl-fix-ZCFQCa\nproject_id: 31ff090b-043b-493d-91e3-83590c2a8490\n\nCall project_set with the same path to register it for this session."
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

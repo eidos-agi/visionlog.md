@@ -1,0 +1,23 @@
+{
+  "tool": "goal_create",
+  "fixture_id": "003-with-backlog-tag",
+  "input": {
+    "title": "Ship it",
+    "depends_on": [
+      "GOAL-002"
+    ],
+    "backlog_tag": "v1.0",
+    "body": "Release to production",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created GOAL-003: Ship it [locked]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

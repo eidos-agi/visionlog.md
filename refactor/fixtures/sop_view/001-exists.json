@@ -1,0 +1,18 @@
+{
+  "tool": "sop_view",
+  "fixture_id": "001-exists",
+  "input": {
+    "sop_id": "SOP-004",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "## SOP-004: Deploy checklist\n\n**Status:** active\n\n## When to use this\n\nBefore every deploy.\n\n## Steps\n\n1. Run tests\n2. Check staging\n3. Deploy\n\n## Guards\n\n- Never skip tests"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

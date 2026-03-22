@@ -1,0 +1,19 @@
+{
+  "tool": "sop_update",
+  "fixture_id": "001-deprecate",
+  "input": {
+    "sop_id": "SOP-004",
+    "status": "deprecated",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated SOP-004: Deploy checklist → deprecated"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

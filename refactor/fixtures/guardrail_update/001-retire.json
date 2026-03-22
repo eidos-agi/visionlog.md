@@ -1,0 +1,19 @@
+{
+  "tool": "guardrail_update",
+  "fixture_id": "001-retire",
+  "input": {
+    "guardrail_id": "GUARD-002",
+    "status": "retired",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated GUARD-002: No secrets in code → retired"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

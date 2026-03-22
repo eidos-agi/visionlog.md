@@ -1,0 +1,17 @@
+{
+  "tool": "project_set",
+  "fixture_id": "001-happy-path",
+  "input": {
+    "path": "/var/folders/x_/j3nb_xdn5pq2845d4xsd_rn80000gn/T/vl-fix-ZCFQCa"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Registered project at /var/folders/x_/j3nb_xdn5pq2845d4xsd_rn80000gn/T/vl-fix-ZCFQCa\nproject_id: 31ff090b-043b-493d-91e3-83590c2a8490\n\nPass this project_id to all visionlog tool calls targeting this project."
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

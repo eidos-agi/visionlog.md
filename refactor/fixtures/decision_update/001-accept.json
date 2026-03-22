@@ -1,0 +1,20 @@
+{
+  "tool": "decision_update",
+  "fixture_id": "001-accept",
+  "input": {
+    "decision_id": "ADR-002",
+    "status": "accepted",
+    "body": "## Context\n\nAuth can wait.\n\n## Decision\n\nDefer to Phase 3.",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated ADR-002: Defer auth → accepted"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

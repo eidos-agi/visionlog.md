@@ -1,0 +1,17 @@
+{
+  "tool": "goal_list",
+  "fixture_id": "002-empty",
+  "input": {
+    "project_id": "02d3b24a-dbeb-4031-aaf8-844d5d1f8614"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "No goals defined yet."
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

@@ -1,0 +1,19 @@
+{
+  "tool": "guardrail_create",
+  "fixture_id": "001-with-body",
+  "input": {
+    "title": "No breaking changes",
+    "body": "## Rule\n\nNever break the API.\n\n## Why\n\nUsers depend on it.\n\n## Violation Examples\n\n- Removing a field",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created GUARD-001: No breaking changes [active]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

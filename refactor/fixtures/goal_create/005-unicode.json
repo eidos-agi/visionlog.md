@@ -1,0 +1,19 @@
+{
+  "tool": "goal_create",
+  "fixture_id": "005-unicode",
+  "input": {
+    "title": "データベース移行",
+    "body": "Japanese goal",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created GOAL-005: データベース移行 [locked]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

@@ -1,0 +1,17 @@
+{
+  "tool": "visionlog_status",
+  "fixture_id": "001-full",
+  "input": {
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Goals (4): complete:1 locked:3\nDecisions (2): accepted:2\nGuardrails: 1 active / 2 total\nSOPs: 3 active / 4 total\nVision: set"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

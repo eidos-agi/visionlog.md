@@ -1,0 +1,18 @@
+{
+  "tool": "decision_view",
+  "fixture_id": "001-exists",
+  "input": {
+    "decision_id": "ADR-001",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "## ADR-001: Use PostgreSQL\n\n**Status:** accepted\n\n## Context\n\nNeed a database.\n\n## Decision\n\nUse Postgres.\n\n## Consequences\n\n### Positive\n\n- Reliable\n\n### Negative\n\n- Complex setup"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

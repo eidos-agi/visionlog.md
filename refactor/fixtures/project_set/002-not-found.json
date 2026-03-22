@@ -1,0 +1,18 @@
+{
+  "tool": "project_set",
+  "fixture_id": "002-not-found",
+  "input": {
+    "path": "/nonexistent/path"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Error: No .visionlog/config.yaml found at /nonexistent/path. Call project_init in that directory first."
+      }
+    ],
+    "isError": true
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

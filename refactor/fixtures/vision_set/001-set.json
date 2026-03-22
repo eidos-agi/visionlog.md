@@ -1,0 +1,19 @@
+{
+  "tool": "vision_set",
+  "fixture_id": "001-set",
+  "input": {
+    "title": "North Star",
+    "body": "## Destination\n\nBuild the best thing.\n\n## Anti-Goals\n\n- Don't build bloatware.",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Vision updated: North Star"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

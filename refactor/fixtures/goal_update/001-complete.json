@@ -1,0 +1,19 @@
+{
+  "tool": "goal_update",
+  "fixture_id": "001-complete",
+  "input": {
+    "goal_id": "GOAL-001",
+    "status": "complete",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Updated GOAL-001: Build foundation → complete"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

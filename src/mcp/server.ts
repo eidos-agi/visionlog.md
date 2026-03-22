@@ -42,7 +42,7 @@ The trilogy:
 - ike.md: executes work within the contracts defined here
 
 This is the source of truth for what this project believes, where it is going, and what it has committed to. Guardrails are contracts — not preferences.`,
-	});
+	} as any);
 
 	registerGoalTools(server, registry);
 	registerDecisionTools(server, registry);

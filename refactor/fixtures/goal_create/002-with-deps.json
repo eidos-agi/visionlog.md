@@ -1,0 +1,22 @@
+{
+  "tool": "goal_create",
+  "fixture_id": "002-with-deps",
+  "input": {
+    "title": "Add features",
+    "depends_on": [
+      "GOAL-001"
+    ],
+    "body": "Features on top",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Created GOAL-002: Add features [locked]"
+      }
+    ]
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}

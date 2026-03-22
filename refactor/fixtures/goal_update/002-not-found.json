@@ -1,0 +1,20 @@
+{
+  "tool": "goal_update",
+  "fixture_id": "002-not-found",
+  "input": {
+    "goal_id": "GOAL-999",
+    "status": "complete",
+    "project_id": "31ff090b-043b-493d-91e3-83590c2a8490"
+  },
+  "output": {
+    "content": [
+      {
+        "type": "text",
+        "text": "Error: Goal GOAL-999 not found"
+      }
+    ],
+    "isError": true
+  },
+  "source_language": "typescript",
+  "captured_at": "2026-03-22"
+}
