@@ -8,7 +8,7 @@ repo:
 packaging:
   build_system: hatchling
   pypi:
-    name: visionlog
+    name: visionlog-md
     publish: true
     trusted_publisher:
       owner: eidos-agi

@@ -1,5 +1,5 @@
 [project]
-name = "visionlog"
+name = "visionlog-md"
 version = "0.2.0"
 description = "The static St. Peter — vision, goals, guardrails, SOPs, ADRs for AI agent governance"
 readme = "README.md"
