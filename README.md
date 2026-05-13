@@ -1,12 +1,14 @@
-# visionlog.md
+# governor.md
 
 MCP server for long-term project governance. Records vision, goals, guardrails, SOPs, and architectural decisions (ADRs) — the contracts that all execution must honor.
 
-Part of the trilogy: **research.md → visionlog.md → ike.md**
+Part of the trilogy: **research.md → governor.md → docket.md**
 
 - research.md earns decisions with evidence
-- **visionlog.md** records them as binding contracts
-- ike.md executes within those contracts
+- **governor.md** records them as binding contracts
+- docket.md executes within those contracts
+
+(governor.md was previously codenamed `visionlog`; docket.md was previously `ike`. Same tools, new brand names.)
 
 ## What it enforces
 
@@ -17,18 +19,16 @@ Part of the trilogy: **research.md → visionlog.md → ike.md**
 
 ## Trilogy conventions
 
-visionlog.md follows shared conventions with ike.md and research.md. See [CONVENTIONS.md](https://github.com/eidos-agi/ike.md/blob/main/CONVENTIONS.md) for the full standard.
+governor.md follows shared conventions with docket.md and research.md. See [CONVENTIONS.md](https://github.com/eidos-agi/docket.md/blob/main/CONVENTIONS.md) for the full standard.
 
-- Config lives at `.visionlog/config.yaml` (committed to git)
+- Config lives at `.governor/config.yaml` (committed to git)
 - Tools: `project_init` (new project) and `project_set` (register existing for session)
 
 ## Install
 
-Not yet published to npm. Install from local path.
-
 ```bash
-npm install
-npm run build
+uv tool install governor-md
+# or: pip install governor-md
 ```
 
 Add to `.mcp.json`:
@@ -36,9 +36,9 @@ Add to `.mcp.json`:
 ```json
 {
   "mcpServers": {
-    "visionlog": {
-      "command": "/absolute/path/to/visionlog.md/dist/visionlog",
-      "args": ["mcp", "start"]
+    "governor": {
+      "type": "stdio",
+      "command": "governor"
     }
   }
 }
@@ -48,17 +48,17 @@ Add to `.mcp.json`:
 
 ```
 project_set { path: "/path/to/project" }   <- returns project_id
-visionlog_boot { project_id: "..." }        <- active guardrails + goal state
-visionlog_guide { project_id: "..." }       <- vision + decisions + goal map
+governor_boot { project_id: "..." }        <- active guardrails + goal state
+governor_guide { project_id: "..." }       <- vision + decisions + goal map
 ```
 
-Read both `visionlog_boot` and `visionlog_guide` at the start of every session before touching any task or code.
+Read both `governor_boot` and `governor_guide` at the start of every session before touching any task or code.
 
 ## Project structure
 
 ```
 my-project/
-  .visionlog/
+  .governor/
     config.yaml          <- project GUID + metadata (commit this)
     vision.md            <- north star, anti-goals, success criteria
     goals/               <- GOAL-NNNN.md — DAG of milestones
@@ -72,15 +72,15 @@ my-project/
 ### Session
 | Tool | Description |
 |------|-------------|
-| `project_init` | Initialize visionlog in a new project |
+| `project_init` | Initialize governor in a new project |
 | `project_set` | Register existing project for session, returns project_id |
 
 ### Orientation (call at session start)
 | Tool | Description |
 |------|-------------|
-| `visionlog_boot` | Active guardrails + current goal state + backlog check |
-| `visionlog_guide` | Vision + key decisions + full goal map |
-| `visionlog_status` | Counts: goals, decisions, guardrails, SOPs |
+| `governor_boot` | Active guardrails + current goal state + backlog check |
+| `governor_guide` | Vision + key decisions + full goal map |
+| `governor_status` | Counts: goals, decisions, guardrails, SOPs |
 
 ### Vision
 | Tool | Description |

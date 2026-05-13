@@ -2,7 +2,7 @@
 
 ## Reporting a Vulnerability
 
-If you discover a security vulnerability in visionlog, please report it responsibly.
+If you discover a security vulnerability in governor, please report it responsibly.
 
 **Email:** daniel@eidosagi.com
 

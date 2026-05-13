@@ -1,4 +1,4 @@
-"""Entity types for visionlog."""
+"""Entity types for governor."""
 
 from dataclasses import dataclass, field
 from typing import Any
@@ -78,7 +78,7 @@ class Vision:
 
 
 @dataclass
-class VisionlogConfig:
+class GovernorConfig:
     id: str = ""
     project: str = ""
     backlog_path: str | None = None

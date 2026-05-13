@@ -1,12 +1,12 @@
-# Contributing to visionlog
+# Contributing to governor
 
 Thanks for your interest in contributing.
 
 ## Quick start
 
 ```bash
-git clone https://github.com/eidos-agi/visionlog.md.git
-cd visionlog.md
+git clone https://github.com/eidos-agi/governor.md.git
+cd governor.md
 pip install -e ".[dev]"
 ```
 

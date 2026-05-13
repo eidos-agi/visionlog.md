@@ -1,4 +1,4 @@
-"""VisionCore — business logic for visionlog entities."""
+"""VisionCore — business logic for governor entities."""
 
 import os
 from datetime import date

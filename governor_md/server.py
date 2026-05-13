@@ -1,22 +1,22 @@
-"""visionlog MCP server — all 27 tools."""
+"""governor MCP server — all 27 tools."""
 
 import os
 from mcp.server.fastmcp import FastMCP
 
 from .core import VisionCore
 
-INSTRUCTIONS = """visionlog is the static St. Peter for this project.
+INSTRUCTIONS = """governor is the static St. Peter for this project.
 
 READ THIS AT THE START OF EVERY SESSION. Before touching any task, any code, any decision.
 
 The trilogy:
 - research.md: make decisions with evidence before they become contracts here
-- visionlog: records vision, goals, guardrails, SOPs, ADRs — the contracts all execution must honor
+- governor: records vision, goals, guardrails, SOPs, ADRs — the contracts all execution must honor
 - ike.md: executes work within the contracts defined here
 
 GUID workflow: Call project_set with the project path to register it and get its project_id. Pass that project_id to every subsequent tool call. For a new project, call project_init first."""
 
-mcp = FastMCP("visionlog", instructions=INSTRUCTIONS)
+mcp = FastMCP("governor", instructions=INSTRUCTIONS)
 
 # In-memory registry: project_id → VisionCore
 _registry: dict[str, VisionCore] = {}
@@ -43,7 +43,7 @@ def _resolve(project_id: str | None = None) -> VisionCore:
 def _find_project_root(start_dir: str) -> str | None:
     d = start_dir
     for _ in range(10):
-        if os.path.exists(os.path.join(d, ".visionlog/config.yaml")):
+        if os.path.exists(os.path.join(d, ".governor/config.yaml")):
             return d
         parent = os.path.dirname(d)
         if parent == d:
@@ -57,7 +57,7 @@ def _find_project_root(start_dir: str) -> str | None:
 
 @mcp.tool()
 def project_init(project_name: str, path: str | None = None, backlog_path: str | None = None) -> str:
-    """Initialize visionlog in a project directory. Pass 'path' to target a specific directory; omit to use the server's default (cwd at startup). After init, call project_set with the same path to register it for this session."""
+    """Initialize governor in a project directory. Pass 'path' to target a specific directory; omit to use the server's default (cwd at startup). After init, call project_set with the same path to register it for this session."""
     abs_path = os.path.abspath(path) if path else None
     if abs_path:
         core = VisionCore(abs_path)
@@ -67,7 +67,7 @@ def project_init(project_name: str, path: str | None = None, backlog_path: str |
     pid = core.get_project_id()
     if abs_path:
         _registry[pid] = core
-    return f'Initialized visionlog for "{project_name}" at {core.root}\nproject_id: {pid}\n\nCall project_set with the same path to register it for this session.'
+    return f'Initialized governor for "{project_name}" at {core.root}\nproject_id: {pid}\n\nCall project_set with the same path to register it for this session.'
 
 
 @mcp.tool()
@@ -75,19 +75,19 @@ def project_set(path: str) -> str:
     """Register a project by its filesystem path and return its UUID. Call this once per project at the start of a multi-project session, then pass the returned project_id to all subsequent tool calls targeting that project. The project must have been initialized with project_init first."""
     abs_path = os.path.abspath(path)
     root = _find_project_root(abs_path) or abs_path
-    config_path = os.path.join(root, ".visionlog/config.yaml")
+    config_path = os.path.join(root, ".governor/config.yaml")
     if not os.path.exists(config_path):
-        return f"Error: No .visionlog/config.yaml found at {root}. Call project_init in that directory first."
+        return f"Error: No .governor/config.yaml found at {root}. Call project_init in that directory first."
     core = VisionCore(root)
     pid = core.get_project_id()
     if not pid:
-        return f"Error: .visionlog/config.yaml at {root} has no 'id' field. Re-run project_init to generate one."
+        return f"Error: .governor/config.yaml at {root} has no 'id' field. Re-run project_init to generate one."
     # Remove stale entries for this root
     for existing_id, existing_core in list(_registry.items()):
         if existing_core.root == root and existing_id != pid:
             del _registry[existing_id]
     _registry[pid] = core
-    return f"Registered project at {root}\nproject_id: {pid}\n\nPass this project_id to all visionlog tool calls targeting this project."
+    return f"Registered project at {root}\nproject_id: {pid}\n\nPass this project_id to all governor tool calls targeting this project."
 
 
 # ── Vision tools ──────────────────────────────────────────────────────────
@@ -112,8 +112,8 @@ def vision_set(title: str, body: str, project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def visionlog_status(project_id: str | None = None) -> str:
-    """Overview of all visionlog content: goals, decisions, guardrails, SOPs, vision."""
+def governor_status(project_id: str | None = None) -> str:
+    """Overview of all governor content: goals, decisions, guardrails, SOPs, vision."""
     core = _resolve(project_id)
     status = core.status()
     goal_line = " ".join(f"{s}:{n}" for s, n in status["goals"]["by_status"].items())
@@ -129,7 +129,7 @@ def visionlog_status(project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def visionlog_boot(project_id: str | None = None) -> str:
+def governor_boot(project_id: str | None = None) -> str:
     """Lightweight session start. Returns guardrail names, goal statuses, SOP triggers, and tooling state."""
     core = _resolve(project_id)
     lines = []
@@ -188,7 +188,7 @@ def visionlog_boot(project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def visionlog_guide(project_id: str | None = None) -> str:
+def governor_guide(project_id: str | None = None) -> str:
     """Full strategic context: vision, key decisions, and goal map."""
     core = _resolve(project_id)
     sections = []
@@ -197,9 +197,9 @@ def visionlog_guide(project_id: str | None = None) -> str:
 
 **The Kernel**: Guardrails are immutable conscience, not preferences. They are the project's alignment layer. Treat them as such.
 
-**The Separation**: Governance is structure. Code is substance. They must not blur. visionlog holds structure only — never implementation details.
+**The Separation**: Governance is structure. Code is substance. They must not blur. governor holds structure only — never implementation details.
 
-**PERCEIVE before ACT**: You are in the perception phase right now. visionlog_guide gives you meaning and direction. visionlog_boot gives you constraints and state. Both are required before any action.
+**PERCEIVE before ACT**: You are in the perception phase right now. governor_guide gives you meaning and direction. governor_boot gives you constraints and state. Both are required before any action.
 
 **Vision is sticky, goals are dealt**: The vision is this project's identity — it does not drift. Goals are the current hand being played. If a goal seems to contradict the vision, surface the conflict. Do not silently update either.""")
 

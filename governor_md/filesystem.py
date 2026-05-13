@@ -1,4 +1,4 @@
-"""File system operations for visionlog entities."""
+"""File system operations for governor entities."""
 
 import os
 import re
@@ -8,7 +8,7 @@ from datetime import date
 from .constants import DIRECTORIES, FILES, ID_PREFIXES
 from .parser import parse_config, parse_goal, parse_decision, parse_guardrail, parse_sop, parse_standard, parse_vision
 from .serializer import serialize_config, serialize_goal, serialize_decision, serialize_guardrail, serialize_sop, serialize_standard, serialize_vision
-from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, VisionlogConfig
+from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, GovernorConfig
 
 
 class VisionFS:
@@ -18,12 +18,12 @@ class VisionFS:
     def is_initialized(self) -> bool:
         return os.path.exists(os.path.join(self.root, FILES["CONFIG"]))
 
-    def load_config(self) -> VisionlogConfig:
+    def load_config(self) -> GovernorConfig:
         path = os.path.join(self.root, FILES["CONFIG"])
         with open(path) as f:
             return parse_config(f.read())
 
-    def save_config(self, config: VisionlogConfig) -> None:
+    def save_config(self, config: GovernorConfig) -> None:
         path = os.path.join(self.root, FILES["CONFIG"])
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -42,7 +42,7 @@ class VisionFS:
         except Exception:
             pass
 
-        config = VisionlogConfig(
+        config = GovernorConfig(
             id=existing_id or str(uuid.uuid4()),
             project=project_name,
             backlog_path=backlog_path,

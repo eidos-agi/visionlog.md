@@ -1,19 +1,19 @@
 """Directory structure and ID prefix constants."""
 
-VISIONLOG_DIR = ".visionlog"
+GOVERNOR_DIR = ".governor"
 
 DIRECTORIES = {
-    "ROOT": VISIONLOG_DIR,
-    "GOALS": f"{VISIONLOG_DIR}/goals",
-    "DECISIONS": f"{VISIONLOG_DIR}/adr",
-    "GUARDRAILS": f"{VISIONLOG_DIR}/guardrails",
-    "SOPS": f"{VISIONLOG_DIR}/sops",
-    "STANDARDS": f"{VISIONLOG_DIR}/standards",
+    "ROOT": GOVERNOR_DIR,
+    "GOALS": f"{GOVERNOR_DIR}/goals",
+    "DECISIONS": f"{GOVERNOR_DIR}/adr",
+    "GUARDRAILS": f"{GOVERNOR_DIR}/guardrails",
+    "SOPS": f"{GOVERNOR_DIR}/sops",
+    "STANDARDS": f"{GOVERNOR_DIR}/standards",
 }
 
 FILES = {
-    "CONFIG": f"{VISIONLOG_DIR}/config.yaml",
-    "VISION": f"{VISIONLOG_DIR}/vision.md",
+    "CONFIG": f"{GOVERNOR_DIR}/config.yaml",
+    "VISION": f"{GOVERNOR_DIR}/vision.md",
 }
 
 ID_PREFIXES = {

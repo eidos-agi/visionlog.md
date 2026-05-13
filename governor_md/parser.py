@@ -1,4 +1,4 @@
-"""Parse visionlog markdown files with JSON-quoted frontmatter.
+"""Parse governor markdown files with JSON-quoted frontmatter.
 
 The frontmatter uses JSON.stringify() for values (double-quoted strings,
 JSON arrays). We parse using gray-matter-compatible logic but handle
@@ -11,7 +11,7 @@ from datetime import date
 
 import yaml
 
-from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, VisionlogConfig
+from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, GovernorConfig
 
 
 def _parse_date(raw) -> str:
@@ -139,7 +139,7 @@ def parse_vision(content: str, file_path: str | None = None) -> Vision:
     )
 
 
-def parse_config(yaml_content: str) -> VisionlogConfig:
+def parse_config(yaml_content: str) -> GovernorConfig:
     # Config may or may not have --- delimiters
     normalized = yaml_content.strip()
     if normalized.startswith("---"):
@@ -149,7 +149,7 @@ def parse_config(yaml_content: str) -> VisionlogConfig:
         for k, v in data.items():
             if hasattr(v, "isoformat"):
                 data[k] = v.isoformat()
-    return VisionlogConfig(
+    return GovernorConfig(
         id=str(data.get("id", "")),
         project=str(data.get("project", "")),
         backlog_path=str(data["backlog_path"]) if data.get("backlog_path") else None,

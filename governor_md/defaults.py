@@ -1,4 +1,4 @@
-"""Bundled default SOPs — seeded into every new visionlog project on init."""
+"""Bundled default SOPs — seeded into every new governor project on init."""
 
 BUNDLED_SOPS = [
     {
@@ -6,25 +6,25 @@ BUNDLED_SOPS = [
         "status": "active",
         "body": """## When to use this
 
-When a visionlog goal has no ike.md tasks yet, or when starting work on a goal that is `available` or `in-progress`. Do not create tasks without first consulting this SOP.
+When a governor goal has no ike.md tasks yet, or when starting work on a goal that is `available` or `in-progress`. Do not create tasks without first consulting this SOP.
 
 ## Steps
 
-1. **Read the goal** — call `visionlog.goal_view(id)`. Understand the exit criteria, dependencies, and what "complete" means.
+1. **Read the goal** — call `governor.goal_view(id)`. Understand the exit criteria, dependencies, and what "complete" means.
 
-2. **Check guardrails** — call `visionlog.guardrail_list(status: active)`. Identify any guardrails that constrain how this goal is executed. If a proposed approach would violate one, stop and redesign before proceeding.
+2. **Check guardrails** — call `governor.guardrail_list(status: active)`. Identify any guardrails that constrain how this goal is executed. If a proposed approach would violate one, stop and redesign before proceeding.
 
 3. **Propose milestones** — decompose the goal into 1–3 milestones. A milestone is a meaningful, demonstrable checkpoint — not a task list. Ask: what intermediate states of the world would prove we are on track?
 
 4. **Create milestones in ike.md** — call `ike.milestone_create` for each milestone. Name them after the outcome, not the activity.
 
 5. **Decompose each milestone into tasks** — for each milestone, identify the atomic work items. A task should be completable in one session. Call `ike.task_create` for each with:
-   - `visionlog_goal_id` set to the goal's ID
+   - `governor_goal_id` set to the goal's ID
    - `milestone` set to the milestone ID
    - `priority` reflecting urgency
    - `acceptance_criteria` defining what done looks like
 
-6. **Update goal status** — if the goal was `locked`, check whether its `depends_on` goals are complete. If yes, call `visionlog.goal_update(status: available)`. If you are starting work now, set `in-progress`.
+6. **Update goal status** — if the goal was `locked`, check whether its `depends_on` goals are complete. If yes, call `governor.goal_update(status: available)`. If you are starting work now, set `in-progress`.
 
 ## Guards
 
@@ -46,18 +46,18 @@ After completing an ike.md task. Completion is not just marking a task done — 
 
 2. **Check the milestone** — call `ike.task_list(milestone: <milestone_id>)`. If all tasks in the milestone are complete, call `ike.milestone_close(milestone_id)`.
 
-3. **Check the goal** — if a milestone was closed, call `ike.task_list(visionlog_goal_id: <goal_id>, include_completed: false)`. If no open tasks remain for this goal:
-   - Call `visionlog.goal_view(id)` — review exit criteria
-   - If exit criteria are met, call `visionlog.goal_update(id, status: complete)`
+3. **Check the goal** — if a milestone was closed, call `ike.task_list(governor_goal_id: <goal_id>, include_completed: false)`. If no open tasks remain for this goal:
+   - Call `governor.goal_view(id)` — review exit criteria
+   - If exit criteria are met, call `governor.goal_update(id, status: complete)`
    - If exit criteria are not fully met, create the remaining tasks before updating status
 
-4. **Capture decisions made** — if any non-obvious decisions were made during execution that aren't recorded anywhere, call `visionlog.decision_create` with `status: accepted` to formalize them. A decision made in execution but not recorded is a contract that was never written.
+4. **Capture decisions made** — if any non-obvious decisions were made during execution that aren't recorded anywhere, call `governor.decision_create` with `status: accepted` to formalize them. A decision made in execution but not recorded is a contract that was never written.
 
-5. **Check unlocks** — call `visionlog.goal_unlockable()`. If completing this goal unlocks others, update their status to `available`.
+5. **Check unlocks** — call `governor.goal_unlockable()`. If completing this goal unlocks others, update their status to `available`.
 
 ## Guards
 
-- Never mark a goal complete without checking its exit criteria in visionlog
+- Never mark a goal complete without checking its exit criteria in governor
 - If you made a decision during execution, write the ADR — do not leave it in task notes
 - Do not skip step 5 — unlocking goals is how the DAG advances""",
     },
@@ -75,12 +75,12 @@ When an ike.md task cannot proceed. A blocked task is a signal that the plan is 
 2. **Diagnose the type** — determine which category applies:
 
    **A. Dependency** — another task or goal must complete first.
-   Action: verify the dependency in ike.md or visionlog. Update `dependencies` on the task if not already set. Wait or switch to unblocked work.
+   Action: verify the dependency in ike.md or governor. Update `dependencies` on the task if not already set. Wait or switch to unblocked work.
 
    **B. Information gap** — the task cannot be completed because knowledge is missing.
    Action: open a research.md project to find the answer. Call `research.project_init` with a clear question. Update the blocked task's notes with the research project ID. Return to this task when the research project is decided.
 
-   **C. Contradiction** — the task conflicts with a visionlog guardrail or ADR.
+   **C. Contradiction** — the task conflicts with a governor guardrail or ADR.
    Action: this is a serious escalation. The task as written is invalid. Either (a) redesign the task to comply, or (b) if the contract itself is wrong, open a research.md project to earn a new decision that supersedes the existing ADR. Do not proceed with a task that violates a guardrail.
 
    **D. Resource or access constraint** — the agent lacks a tool, permission, or capability.
@@ -91,7 +91,7 @@ When an ike.md task cannot proceed. A blocked task is a signal that the plan is 
 ## Guards
 
 - A blocked task with no diagnosis is invisible debt — it will sit in the backlog forever
-- Do not spawn a research.md project for questions that can be answered by reading existing visionlog ADRs or SOPs first
+- Do not spawn a research.md project for questions that can be answered by reading existing governor ADRs or SOPs first
 - A contradiction with a guardrail is never a blocker to work around — it is a signal to stop and govern""",
     },
 ]

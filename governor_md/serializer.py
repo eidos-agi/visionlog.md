@@ -1,13 +1,13 @@
-"""Serialize visionlog entities to markdown with JSON-quoted frontmatter.
+"""Serialize governor entities to markdown with JSON-quoted frontmatter.
 
-IMPORTANT: visionlog uses JSON.stringify() for frontmatter values, NOT YAML.
+IMPORTANT: governor uses JSON.stringify() for frontmatter values, NOT YAML.
 This means strings are double-quoted ("value"), arrays use JSON syntax (["a", "b"]),
 and the config file has no --- delimiters. This differs from ike.md and research.md
 which use gray-matter/YAML style. Standardization is planned for after the port.
 """
 
 import json
-from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, VisionlogConfig
+from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, GovernorConfig
 
 
 def _frontmatter(pairs: dict) -> str:
@@ -108,7 +108,7 @@ def serialize_vision(v: Vision) -> str:
     return f"{_frontmatter(pairs)}\n\n{v.body}\n"
 
 
-def serialize_config(config: VisionlogConfig) -> str:
+def serialize_config(config: GovernorConfig) -> str:
     lines = [
         f'id: {json.dumps(config.id or "")}',
         f'project: {json.dumps(config.project)}',
