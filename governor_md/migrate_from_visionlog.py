@@ -59,14 +59,23 @@ def plan_for_project(project_root: Path) -> Plan:
         if "project: " in content and "visionlog.md" in content:
             plan.add("  config.yaml: set project: governor.md (was visionlog.md)")
 
-    # Claude settings allowlist
+    # Claude settings allowlist — two patterns:
+    #   mcp__visionlog__*           -> mcp__governor__*    (server prefix)
+    #   mcp__governor__visionlog_*  -> mcp__governor__governor_*  (brand-prefixed
+    #     tool names that survived the first pass; the source rename in
+    #     governor-md v0.3.0 renamed visionlog_status/boot/guide to
+    #     governor_status/boot/guide)
     settings = project_root / ".claude" / "settings.local.json"
     if settings.is_file():
         content = settings.read_text()
-        _, n = _safe_sub(content, r"mcp__visionlog__", "mcp__governor__")
-        if n:
+        _, n1 = _safe_sub(content, r"mcp__visionlog__", "mcp__governor__")
+        _, n2 = _safe_sub(
+            content, r"mcp__governor__visionlog_", "mcp__governor__governor_"
+        )
+        total = n1 + n2
+        if total:
             plan.add(
-                f"edit .claude/settings.local.json: {n} mcp__visionlog__ -> mcp__governor__"
+                f"edit .claude/settings.local.json: {total} entries normalized to mcp__governor__governor_*"
             )
 
     # .mcp.json server name + commands
@@ -113,11 +122,15 @@ def apply_plan(plan: Plan) -> None:
         if new != content:
             cfg.write_text(new)
 
-    # 3. Claude settings allowlist
+    # 3. Claude settings allowlist (both patterns, see plan_for_project)
     settings = project_root / ".claude" / "settings.local.json"
     if settings.is_file():
         content = settings.read_text()
-        new, _ = _safe_sub(content, r"mcp__visionlog__", "mcp__governor__")
+        new = content
+        new, _ = _safe_sub(new, r"mcp__visionlog__", "mcp__governor__")
+        new, _ = _safe_sub(
+            new, r"mcp__governor__visionlog_", "mcp__governor__governor_"
+        )
         if new != content:
             settings.write_text(new)
 
