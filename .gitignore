@@ -1,11 +1,10 @@
-# Node (TypeScript original)
+# Stale TS artifacts on disk (cleanup left them ignored, not tracked).
+# Manually remove with: rm -rf node_modules dist
 node_modules/
 dist/
-*.js.map
-*.tsbuildinfo
 *.db
 
-# Python (new primary)
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
@@ -36,4 +35,3 @@ htmlcov/
 .ruff_cache/
 
 .mcp.json
-package-lock.json
