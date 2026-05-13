@@ -29,6 +29,7 @@ dev = [
 
 [project.scripts]
 governor = "governor_md.server:main"
+governor-migrate = "governor_md.migrate_from_visionlog:main"
 
 [project.entry-points."mcp"]
 governor = "governor_md.server:mcp"
