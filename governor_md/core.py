@@ -1,6 +1,5 @@
 """VisionCore — business logic for governor entities."""
 
-import os
 from datetime import date
 
 from .filesystem import VisionFS
@@ -34,8 +33,15 @@ class VisionCore:
 
     # ── Goals ─────────────────────────────────────────────────────────────
 
-    def create_goal(self, title: str, status: str = "locked", depends_on: list[str] | None = None,
-                    unlocks: list[str] | None = None, backlog_tag: str | None = None, body: str | None = None) -> Goal:
+    def create_goal(
+        self,
+        title: str,
+        status: str = "locked",
+        depends_on: list[str] | None = None,
+        unlocks: list[str] | None = None,
+        backlog_tag: str | None = None,
+        body: str | None = None,
+    ) -> Goal:
         id = self.fs.next_goal_id()
         goal = Goal(
             id=id,
@@ -46,7 +52,8 @@ class VisionCore:
             depends_on=depends_on or [],
             unlocks=unlocks or [],
             backlog_tag=backlog_tag,
-            body=body or "## What this achieves\n\n\n\n## Exit Criteria\n\n- [ ] \n\n## Notes\n\n",
+            body=body
+            or "## What this achieves\n\n\n\n## Exit Criteria\n\n- [ ] \n\n## Notes\n\n",
         )
         self.fs.save_goal(goal)
         return goal
@@ -71,7 +78,8 @@ class VisionCore:
         all_goals = self.list_goals()
         complete_ids = {g.id for g in all_goals if g.status == "complete"}
         return [
-            g for g in all_goals
+            g
+            for g in all_goals
             if g.status == "locked"
             and len(g.depends_on) > 0
             and all(dep in complete_ids for dep in g.depends_on)
@@ -79,9 +87,15 @@ class VisionCore:
 
     # ── Decisions ─────────────────────────────────────────────────────────
 
-    def create_decision(self, title: str, status: str = "proposed", supersedes: str | None = None,
-                        relates_to: list[str] | None = None, source_research_id: str | None = None,
-                        body: str | None = None) -> Decision:
+    def create_decision(
+        self,
+        title: str,
+        status: str = "proposed",
+        supersedes: str | None = None,
+        relates_to: list[str] | None = None,
+        source_research_id: str | None = None,
+        body: str | None = None,
+    ) -> Decision:
         id = self.fs.next_decision_id()
         decision = Decision(
             id=id,
@@ -92,7 +106,8 @@ class VisionCore:
             supersedes=supersedes,
             relates_to=relates_to or [],
             source_research_id=source_research_id,
-            body=body or "## Context\n\n\n\n## Decision\n\n\n\n## Consequences\n\n### Positive\n\n- \n\n### Negative\n\n- \n",
+            body=body
+            or "## Context\n\n\n\n## Decision\n\n\n\n## Consequences\n\n### Positive\n\n- \n\n### Negative\n\n- \n",
         )
         self.fs.save_decision(decision)
         return decision
@@ -115,8 +130,13 @@ class VisionCore:
 
     # ── Guardrails ────────────────────────────────────────────────────────
 
-    def create_guardrail(self, title: str, status: str = "active", adr: str | None = None,
-                         body: str | None = None) -> Guardrail:
+    def create_guardrail(
+        self,
+        title: str,
+        status: str = "active",
+        adr: str | None = None,
+        body: str | None = None,
+    ) -> Guardrail:
         id = self.fs.next_guardrail_id()
         guardrail = Guardrail(
             id=id,
@@ -148,8 +168,14 @@ class VisionCore:
 
     # ── SOPs ──────────────────────────────────────────────────────────────
 
-    def create_sop(self, title: str = "", status: str = "draft", adr: str | None = None,
-                   body: str | None = None, **kwargs) -> Sop:
+    def create_sop(
+        self,
+        title: str = "",
+        status: str = "draft",
+        adr: str | None = None,
+        body: str | None = None,
+        **kwargs,
+    ) -> Sop:
         # Accept dict-style input for seeding
         if isinstance(title, dict):
             d = title
@@ -166,7 +192,8 @@ class VisionCore:
             status=status,
             date=date.today().isoformat(),
             adr=adr,
-            body=body or "## When to use this\n\n\n\n## Steps\n\n1. \n\n## Guards\n\n- \n",
+            body=body
+            or "## When to use this\n\n\n\n## Steps\n\n1. \n\n## Guards\n\n- \n",
         )
         self.fs.save_sop(sop)
         return sop
@@ -189,8 +216,13 @@ class VisionCore:
 
     # ── Standards ─────────────────────────────────────────────────────────
 
-    def create_standard(self, title: str, status: str = "draft", adr: str | None = None,
-                        body: str | None = None) -> Standard:
+    def create_standard(
+        self,
+        title: str,
+        status: str = "draft",
+        adr: str | None = None,
+        body: str | None = None,
+    ) -> Standard:
         id = self.fs.next_standard_id()
         std = Standard(
             id=id,
@@ -241,7 +273,13 @@ class VisionCore:
         return {
             "goals": {"total": len(goals), "by_status": count_by(goals)},
             "decisions": {"total": len(decisions), "by_status": count_by(decisions)},
-            "guardrails": {"total": len(guardrails), "active": sum(1 for g in guardrails if g.status == "active")},
-            "sops": {"total": len(sops), "active": sum(1 for s in sops if s.status == "active")},
+            "guardrails": {
+                "total": len(guardrails),
+                "active": sum(1 for g in guardrails if g.status == "active"),
+            },
+            "sops": {
+                "total": len(sops),
+                "active": sum(1 for s in sops if s.status == "active"),
+            },
             "has_vision": vision is not None,
         }

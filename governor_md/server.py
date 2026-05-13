@@ -56,7 +56,9 @@ def _find_project_root(start_dir: str) -> str | None:
 
 
 @mcp.tool()
-def project_init(project_name: str, path: str | None = None, backlog_path: str | None = None) -> str:
+def project_init(
+    project_name: str, path: str | None = None, backlog_path: str | None = None
+) -> str:
     """Initialize governor in a project directory. Pass 'path' to target a specific directory; omit to use the server's default (cwd at startup). After init, call project_set with the same path to register it for this session."""
     abs_path = os.path.abspath(path) if path else None
     if abs_path:
@@ -117,7 +119,9 @@ def governor_status(project_id: str | None = None) -> str:
     core = _resolve(project_id)
     status = core.status()
     goal_line = " ".join(f"{s}:{n}" for s, n in status["goals"]["by_status"].items())
-    decision_line = " ".join(f"{s}:{n}" for s, n in status["decisions"]["by_status"].items())
+    decision_line = " ".join(
+        f"{s}:{n}" for s, n in status["decisions"]["by_status"].items()
+    )
     lines = [
         f"Goals ({status['goals']['total']}): {goal_line or 'none'}",
         f"Decisions ({status['decisions']['total']}): {decision_line or 'none'}",
@@ -139,7 +143,9 @@ def governor_boot(project_id: str | None = None) -> str:
     guards = [g for g in core.list_guardrails() if g.status == "active"]
     if guards:
         lines.append("")
-        lines.append(f"**Guardrails ({len(guards)})** — call guardrail_view before any action that might violate:")
+        lines.append(
+            f"**Guardrails ({len(guards)})** — call guardrail_view before any action that might violate:"
+        )
         for g in guards:
             lines.append(f"  - {g.id}: {g.title}")
     goals = core.list_goals()
@@ -155,7 +161,9 @@ def governor_boot(project_id: str | None = None) -> str:
         if active:
             lines.append(f"  Active: {', '.join(f'{g.id}: {g.title}' for g in active)}")
         if available:
-            lines.append(f"  Ready: {', '.join(f'{g.id}: {g.title}' for g in available)}")
+            lines.append(
+                f"  Ready: {', '.join(f'{g.id}: {g.title}' for g in available)}"
+            )
     else:
         lines.append("")
         lines.append("**Goals:** none — create goals before working")
@@ -165,16 +173,30 @@ def governor_boot(project_id: str | None = None) -> str:
         lines.append(f"**SOPs ({len(sops)}):**")
         for s in sops:
             body_lines = (s.body or "").split("\n")
-            trigger = next((l.strip() for l in body_lines if l.strip().lower().startswith("when ")), None)
+            trigger = next(
+                (
+                    line.strip()
+                    for line in body_lines
+                    if line.strip().lower().startswith("when ")
+                ),
+                None,
+            )
             lines.append(f"  - {s.id}: {s.title}{f' — {trigger}' if trigger else ''}")
     decisions = core.list_decisions()
     accepted = [d for d in decisions if d.status == "accepted"]
     if accepted:
         lines.append("")
-        lines.append(f"**ADRs:** {len(accepted)} accepted — call decision_list for details")
-    backlog_exists = any(os.path.exists(os.path.join(core.root, p)) for p in ["backlog", ".backlog", "backlog.md"])
+        lines.append(
+            f"**ADRs:** {len(accepted)} accepted — call decision_list for details"
+        )
+    backlog_exists = any(
+        os.path.exists(os.path.join(core.root, p))
+        for p in ["backlog", ".backlog", "backlog.md"]
+    )
     ike_exists = os.path.exists(os.path.join(core.root, ".ike"))
-    research_exists = any(os.path.exists(os.path.join(core.root, p)) for p in [".research", "research"])
+    research_exists = any(
+        os.path.exists(os.path.join(core.root, p)) for p in [".research", "research"]
+    )
     lines.append("")
     tools = []
     if ike_exists:
@@ -183,7 +205,11 @@ def governor_boot(project_id: str | None = None) -> str:
         tools.append("backlog.md ✓")
     if research_exists:
         tools.append("research.md ✓")
-    lines.append(f"**Trilogy:** {' | '.join(tools)}" if tools else "**Trilogy:** no task tracking initialized")
+    lines.append(
+        f"**Trilogy:** {' | '.join(tools)}"
+        if tools
+        else "**Trilogy:** no task tracking initialized"
+    )
     return "\n".join(lines)
 
 
@@ -207,18 +233,31 @@ def governor_guide(project_id: str | None = None) -> str:
     if vision and vision.body and vision.body.strip():
         sections.append(f"# {vision.title}\n\n{vision.body.strip()}")
     else:
-        missing.append("`vision_set` — define why this project exists, its destination, and anti-goals")
+        missing.append(
+            "`vision_set` — define why this project exists, its destination, and anti-goals"
+        )
 
     decisions = [d for d in core.list_decisions() if d.status == "accepted"]
-    with_body = [d for d in decisions if d.body and d.body.strip() and "## Context\n\n\n" not in d.body]
+    with_body = [
+        d
+        for d in decisions
+        if d.body and d.body.strip() and "## Context\n\n\n" not in d.body
+    ]
     if with_body:
         blocks = [f"### {d.id}: {d.title}\n{d.body.strip()}" for d in with_body]
-        sections.append("## Key Decisions (the reasoning behind the architecture)\n\n" + "\n\n".join(blocks))
+        sections.append(
+            "## Key Decisions (the reasoning behind the architecture)\n\n"
+            + "\n\n".join(blocks)
+        )
     elif decisions:
         items = "\n".join(f"- **{d.id}**: {d.title}" for d in decisions)
-        sections.append(f"## Key Decisions\n{items}\n\n_Bodies not yet written. Call `decision_view <id>` or `decision_update` to add context._")
+        sections.append(
+            f"## Key Decisions\n{items}\n\n_Bodies not yet written. Call `decision_view <id>` or `decision_update` to add context._"
+        )
     else:
-        missing.append("`decision_create` — record the key architectural choices and why they were made")
+        missing.append(
+            "`decision_create` — record the key architectural choices and why they were made"
+        )
 
     goals = core.list_goals()
     if goals:
@@ -233,11 +272,15 @@ def governor_guide(project_id: str | None = None) -> str:
                 goal_lines.append(f"- [{s}] **{g.id}**: {g.title}{deps}")
         sections.append("## Goal Map\n\n" + "\n".join(goal_lines))
     else:
-        missing.append("`goal_create` — define the goal DAG so agents know what 'done' looks like")
+        missing.append(
+            "`goal_create` — define the goal DAG so agents know what 'done' looks like"
+        )
 
     if missing:
         items = "\n".join(f"- {m}" for m in missing)
-        sections.append(f"## ⚠ Governance gaps — fill these to give agents full context\n\n{items}")
+        sections.append(
+            f"## ⚠ Governance gaps — fill these to give agents full context\n\n{items}"
+        )
 
     return "\n\n---\n\n".join(sections)
 
@@ -246,13 +289,25 @@ def governor_guide(project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def goal_create(title: str, project_id: str | None = None, status: str | None = None,
-                depends_on: list[str] | None = None, unlocks: list[str] | None = None,
-                backlog_tag: str | None = None, body: str | None = None) -> str:
+def goal_create(
+    title: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    depends_on: list[str] | None = None,
+    unlocks: list[str] | None = None,
+    backlog_tag: str | None = None,
+    body: str | None = None,
+) -> str:
     """Create a new goal in the vision DAG."""
     core = _resolve(project_id)
-    goal = core.create_goal(title, status=status or "locked", depends_on=depends_on,
-                            unlocks=unlocks, backlog_tag=backlog_tag, body=body)
+    goal = core.create_goal(
+        title,
+        status=status or "locked",
+        depends_on=depends_on,
+        unlocks=unlocks,
+        backlog_tag=backlog_tag,
+        body=body,
+    )
     return f"Created {goal.id}: {goal.title} [{goal.status}]"
 
 
@@ -279,9 +334,15 @@ def goal_view(goal_id: str, project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def goal_update(goal_id: str, project_id: str | None = None, status: str | None = None,
-                title: str | None = None, body: str | None = None,
-                depends_on: list[str] | None = None, unlocks: list[str] | None = None) -> str:
+def goal_update(
+    goal_id: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    title: str | None = None,
+    body: str | None = None,
+    depends_on: list[str] | None = None,
+    unlocks: list[str] | None = None,
+) -> str:
     """Update a goal's fields."""
     core = _resolve(project_id)
     updates = {}
@@ -316,8 +377,13 @@ def goal_unlockable(project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def guardrail_create(title: str, project_id: str | None = None, status: str | None = None,
-                     adr: str | None = None, body: str | None = None) -> str:
+def guardrail_create(
+    title: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    adr: str | None = None,
+    body: str | None = None,
+) -> str:
     """Create a new guardrail — a constraint the system must never violate."""
     core = _resolve(project_id)
     g = core.create_guardrail(title, status=status or "active", adr=adr, body=body)
@@ -345,8 +411,13 @@ def guardrail_view(guardrail_id: str, project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def guardrail_update(guardrail_id: str, project_id: str | None = None, status: str | None = None,
-                     title: str | None = None, body: str | None = None) -> str:
+def guardrail_update(
+    guardrail_id: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    title: str | None = None,
+    body: str | None = None,
+) -> str:
     """Update a guardrail's fields."""
     core = _resolve(project_id)
     updates = {}
@@ -377,13 +448,25 @@ def guardrail_inject(project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def decision_create(title: str, project_id: str | None = None, status: str | None = None,
-                    supersedes: str | None = None, relates_to: list[str] | None = None,
-                    source_research_id: str | None = None, body: str | None = None) -> str:
+def decision_create(
+    title: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    supersedes: str | None = None,
+    relates_to: list[str] | None = None,
+    source_research_id: str | None = None,
+    body: str | None = None,
+) -> str:
     """Create a new decision (ADR)."""
     core = _resolve(project_id)
-    d = core.create_decision(title, status=status or "proposed", supersedes=supersedes,
-                             relates_to=relates_to, source_research_id=source_research_id, body=body)
+    d = core.create_decision(
+        title,
+        status=status or "proposed",
+        supersedes=supersedes,
+        relates_to=relates_to,
+        source_research_id=source_research_id,
+        body=body,
+    )
     return f"Created {d.id}: {d.title} [{d.status}]"
 
 
@@ -408,8 +491,13 @@ def decision_view(decision_id: str, project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def decision_update(decision_id: str, project_id: str | None = None, status: str | None = None,
-                    title: str | None = None, body: str | None = None) -> str:
+def decision_update(
+    decision_id: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    title: str | None = None,
+    body: str | None = None,
+) -> str:
     """Update a decision's fields."""
     core = _resolve(project_id)
     updates = {}
@@ -430,8 +518,13 @@ def decision_update(decision_id: str, project_id: str | None = None, status: str
 
 
 @mcp.tool()
-def sop_create(title: str, project_id: str | None = None, status: str | None = None,
-               adr: str | None = None, body: str | None = None) -> str:
+def sop_create(
+    title: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    adr: str | None = None,
+    body: str | None = None,
+) -> str:
     """Create a new SOP (Standard Operating Procedure)."""
     core = _resolve(project_id)
     s = core.create_sop(title=title, status=status or "draft", adr=adr, body=body)
@@ -459,8 +552,13 @@ def sop_view(sop_id: str, project_id: str | None = None) -> str:
 
 
 @mcp.tool()
-def sop_update(sop_id: str, project_id: str | None = None, status: str | None = None,
-               title: str | None = None, body: str | None = None) -> str:
+def sop_update(
+    sop_id: str,
+    project_id: str | None = None,
+    status: str | None = None,
+    title: str | None = None,
+    body: str | None = None,
+) -> str:
     """Update an SOP's fields."""
     core = _resolve(project_id)
     updates = {}

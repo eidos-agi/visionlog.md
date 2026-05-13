@@ -6,8 +6,24 @@ import uuid
 from datetime import date
 
 from .constants import DIRECTORIES, FILES, ID_PREFIXES
-from .parser import parse_config, parse_goal, parse_decision, parse_guardrail, parse_sop, parse_standard, parse_vision
-from .serializer import serialize_config, serialize_goal, serialize_decision, serialize_guardrail, serialize_sop, serialize_standard, serialize_vision
+from .parser import (
+    parse_config,
+    parse_goal,
+    parse_decision,
+    parse_guardrail,
+    parse_sop,
+    parse_standard,
+    parse_vision,
+)
+from .serializer import (
+    serialize_config,
+    serialize_goal,
+    serialize_decision,
+    serialize_guardrail,
+    serialize_sop,
+    serialize_standard,
+    serialize_vision,
+)
 from .types import Goal, Decision, Guardrail, Sop, Standard, Vision, GovernorConfig
 
 
@@ -105,7 +121,11 @@ class VisionFS:
         return f"{goal.id}-{slug}.md"
 
     def save_goal(self, goal: Goal) -> str:
-        filename = os.path.basename(goal.filePath) if goal.filePath else self._goal_filename(goal)
+        filename = (
+            os.path.basename(goal.filePath)
+            if goal.filePath
+            else self._goal_filename(goal)
+        )
         path = os.path.join(self.root, DIRECTORIES["GOALS"], filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -136,7 +156,11 @@ class VisionFS:
         return f"{d.id}-{slug}.md"
 
     def save_decision(self, decision: Decision) -> str:
-        filename = os.path.basename(decision.filePath) if decision.filePath else self._decision_filename(decision)
+        filename = (
+            os.path.basename(decision.filePath)
+            if decision.filePath
+            else self._decision_filename(decision)
+        )
         path = os.path.join(self.root, DIRECTORIES["DECISIONS"], filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -167,7 +191,11 @@ class VisionFS:
         return f"{g.id}-{slug}.md"
 
     def save_guardrail(self, guardrail: Guardrail) -> str:
-        filename = os.path.basename(guardrail.filePath) if guardrail.filePath else self._guardrail_filename(guardrail)
+        filename = (
+            os.path.basename(guardrail.filePath)
+            if guardrail.filePath
+            else self._guardrail_filename(guardrail)
+        )
         path = os.path.join(self.root, DIRECTORIES["GUARDRAILS"], filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -198,7 +226,9 @@ class VisionFS:
         return f"{sop.id}-{slug}.md"
 
     def save_sop(self, sop: Sop) -> str:
-        filename = os.path.basename(sop.filePath) if sop.filePath else self._sop_filename(sop)
+        filename = (
+            os.path.basename(sop.filePath) if sop.filePath else self._sop_filename(sop)
+        )
         path = os.path.join(self.root, DIRECTORIES["SOPS"], filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:
@@ -226,7 +256,9 @@ class VisionFS:
 
     def save_standard(self, std: Standard) -> str:
         slug = self._slugify(std.title)
-        filename = os.path.basename(std.filePath) if std.filePath else f"{std.id}-{slug}.md"
+        filename = (
+            os.path.basename(std.filePath) if std.filePath else f"{std.id}-{slug}.md"
+        )
         path = os.path.join(self.root, DIRECTORIES["STANDARDS"], filename)
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w") as f:

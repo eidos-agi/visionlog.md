@@ -80,7 +80,9 @@ def plan_for_project(project_root: Path) -> Plan:
         change_count += n
         _, n = _safe_sub(content, r"visionlog_md\.", "governor_md.")
         change_count += n
-        _, n = _safe_sub(content, r'"command"\s*:\s*"visionlog"', '"command": "governor"')
+        _, n = _safe_sub(
+            content, r'"command"\s*:\s*"visionlog"', '"command": "governor"'
+        )
         change_count += n
         if change_count:
             plan.add(

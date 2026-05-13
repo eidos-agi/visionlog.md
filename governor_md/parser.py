@@ -5,8 +5,6 @@ JSON arrays). We parse using gray-matter-compatible logic but handle
 JSON values specifically.
 """
 
-import json
-import re
 from datetime import date
 
 import yaml
@@ -44,7 +42,7 @@ def _parse_frontmatter(content: str) -> tuple[dict, str]:
             else:
                 return {}, content
         fm_str = content[4:end]
-        body = content[end + 5:]
+        body = content[end + 5 :]
         data = yaml.safe_load(fm_str) or {}
         # Convert date objects back to strings
         for k, v in data.items():
@@ -80,7 +78,9 @@ def parse_decision(content: str, file_path: str | None = None) -> Decision:
         date=_parse_date(data.get("date")),
         supersedes=str(data["supersedes"]) if data.get("supersedes") else None,
         relates_to=_parse_string_array(data.get("relates_to")),
-        source_research_id=str(data["source_research_id"]) if data.get("source_research_id") else None,
+        source_research_id=str(data["source_research_id"])
+        if data.get("source_research_id")
+        else None,
         body=body,
         filePath=file_path,
     )

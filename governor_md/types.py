@@ -1,7 +1,6 @@
 """Entity types for governor."""
 
 from dataclasses import dataclass, field
-from typing import Any
 
 
 @dataclass

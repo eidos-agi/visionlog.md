@@ -110,10 +110,10 @@ def serialize_vision(v: Vision) -> str:
 
 def serialize_config(config: GovernorConfig) -> str:
     lines = [
-        f'id: {json.dumps(config.id or "")}',
-        f'project: {json.dumps(config.project)}',
-        f'created: {json.dumps(config.created)}',
+        f"id: {json.dumps(config.id or '')}",
+        f"project: {json.dumps(config.project)}",
+        f"created: {json.dumps(config.created)}",
     ]
     if config.backlog_path:
-        lines.append(f'backlog_path: {json.dumps(config.backlog_path)}')
+        lines.append(f"backlog_path: {json.dumps(config.backlog_path)}")
     return "\n".join(lines) + "\n"
