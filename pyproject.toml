@@ -1,6 +1,6 @@
 [project]
 name = "governor-md"
-version = "0.3.0"
+version = "0.4.0"
 description = "The static St. Peter — vision, goals, guardrails, SOPs, ADRs for AI agent governance"
 readme = "README.md"
 license = "MIT"
@@ -20,6 +20,7 @@ classifiers = [
 dependencies = [
     "mcp>=1.0.0",
     "pyyaml>=6.0",
+    "typer>=0.12.0",
 ]
 
 [project.optional-dependencies]
@@ -28,11 +29,11 @@ dev = [
 ]
 
 [project.scripts]
-governor = "governor_md.server:main"
+governor = "governor_md.cli:main"
 governor-migrate = "governor_md.migrate_from_visionlog:main"
 
 [project.entry-points."mcp"]
-governor = "governor_md.server:mcp"
+governor = "governor_md.mcp_server:server"
 
 [project.urls]
 Homepage = "https://github.com/eidos-agi/governor.md"

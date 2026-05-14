@@ -1,26 +1,29 @@
-"""governor-migrate — rename `visionlog-md` state to `governor-md` in any project.
+"""governor-migrate — bring a project to current governor state.
 
-Run inside a project directory (looks for `.visionlog/`) or pass `--root` to
-sweep a tree of repos. Dry-run by default; pass `--apply` to actually rewrite.
+Handles three transitions, idempotently, in one sweep:
 
-Renames performed per project:
-    .visionlog/                  -> .governor/
-    .visionlog/config.yaml       -> .governor/config.yaml
-        field `project: visionlog.md` -> `project: governor.md` (if present)
-    .claude/settings.local.json: mcp__visionlog__ -> mcp__governor__
-    .mcp.json:                   visionlog server name + commands -> governor
+    v0.2.x (visionlog-md) → v0.3.0 (governor-md):
+        .visionlog/ → .governor/, config.yaml's project field,
+        mcp__visionlog__ → mcp__governor__, mcp__governor__visionlog_* →
+        mcp__governor__governor_*, .mcp.json server name + commands.
+
+    v0.3.0 (MCP-fat) → v0.4.0 (CLI-first razor-thin MCP):
+        collapse all mcp__governor__* allowlist entries to a single
+        mcp__governor__help; insert Bash(governor:*) if absent.
+        (See ADR-006.)
+
+Run inside a project directory or pass --root to sweep a tree. Dry-run by
+default; pass --apply to actually rewrite.
 
 Files NEVER touched:
-    - Markdown content inside .visionlog/ (only the dir is renamed)
+    - Markdown content inside .visionlog/ or .governor/ (only the dir is renamed)
     - Files outside the project root
-    - References to `vision` standalone (the semantic concept — vision_set,
-      vision_view, the `vision.md` file inside the state dir all preserve
-      their names; only the `visionlog` brand is replaced)
 """
 
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from dataclasses import dataclass
@@ -52,31 +55,44 @@ def plan_for_project(project_root: Path) -> Plan:
     if vlog_dir.is_dir() and not gov_dir.exists():
         plan.add(f"rename {vlog_dir.name}/ -> {gov_dir.name}/")
 
-    # config.yaml — update project field if it references the brand
     cfg = vlog_dir / "config.yaml" if vlog_dir.is_dir() else None
     if cfg and cfg.is_file():
         content = cfg.read_text()
         if "project: " in content and "visionlog.md" in content:
             plan.add("  config.yaml: set project: governor.md (was visionlog.md)")
 
-    # Claude settings allowlist — two patterns:
-    #   mcp__visionlog__*           -> mcp__governor__*    (server prefix)
-    #   mcp__governor__visionlog_*  -> mcp__governor__governor_*  (brand-prefixed
-    #     tool names that survived the first pass; the source rename in
-    #     governor-md v0.3.0 renamed visionlog_status/boot/guide to
-    #     governor_status/boot/guide)
+    # Claude settings allowlist — three transitions are handled idempotently:
+    #   mcp__visionlog__*               -> mcp__governor__*       (v0.3.0 server prefix)
+    #   mcp__governor__visionlog_*      -> mcp__governor__governor_*  (v0.3.0 brand-prefixed tool names)
+    #   ALL mcp__governor__* (any verb) -> mcp__governor__help    (v0.4.0 CLI-first collapse)
+    #   plus: ensure Bash(governor:*) is present (v0.4.0)
     settings = project_root / ".claude" / "settings.local.json"
     if settings.is_file():
-        content = settings.read_text()
-        _, n1 = _safe_sub(content, r"mcp__visionlog__", "mcp__governor__")
-        _, n2 = _safe_sub(
-            content, r"mcp__governor__visionlog_", "mcp__governor__governor_"
-        )
-        total = n1 + n2
-        if total:
-            plan.add(
-                f"edit .claude/settings.local.json: {total} entries normalized to mcp__governor__governor_*"
+        try:
+            data = json.loads(settings.read_text())
+        except json.JSONDecodeError:
+            data = None
+        if isinstance(data, dict):
+            allow = data.get("permissions", {}).get("allow", [])
+            gov_entries = [
+                e
+                for e in allow
+                if isinstance(e, str)
+                and (
+                    e.startswith("mcp__governor__") or e.startswith("mcp__visionlog__")
+                )
+            ]
+            already_help = any(e == "mcp__governor__help" for e in allow)
+            bash_pattern_present = any(
+                isinstance(e, str) and e.startswith("Bash(governor") for e in allow
             )
+            if gov_entries and (not already_help or len(gov_entries) > 1):
+                plan.add(
+                    f"collapse {len(gov_entries)} mcp__(governor|visionlog)__* allowlist entries → "
+                    "single mcp__governor__help (CLI-first; v0.4.0)"
+                )
+            if not bash_pattern_present:
+                plan.add("add Bash(governor:*) to allowlist (CLI-first)")
 
     # .mcp.json server name + commands
     mcp_json = project_root / ".mcp.json"
@@ -122,17 +138,41 @@ def apply_plan(plan: Plan) -> None:
         if new != content:
             cfg.write_text(new)
 
-    # 3. Claude settings allowlist (both patterns, see plan_for_project)
+    # 3. Claude settings allowlist (three transitions; see plan_for_project)
     settings = project_root / ".claude" / "settings.local.json"
     if settings.is_file():
-        content = settings.read_text()
-        new = content
-        new, _ = _safe_sub(new, r"mcp__visionlog__", "mcp__governor__")
-        new, _ = _safe_sub(
-            new, r"mcp__governor__visionlog_", "mcp__governor__governor_"
-        )
-        if new != content:
-            settings.write_text(new)
+        try:
+            data = json.loads(settings.read_text())
+        except json.JSONDecodeError:
+            data = None
+        if isinstance(data, dict):
+            allow = data.get("permissions", {}).get("allow", [])
+            # 3a. Drop any mcp__governor__* and mcp__visionlog__* entries
+            new_allow = [
+                e
+                for e in allow
+                if not (
+                    isinstance(e, str)
+                    and (
+                        e.startswith("mcp__governor__")
+                        or e.startswith("mcp__visionlog__")
+                    )
+                )
+            ]
+            changed = len(allow) != len(new_allow)
+            # 3b. Add the single mcp__governor__help entry
+            if not any(e == "mcp__governor__help" for e in new_allow):
+                new_allow.append("mcp__governor__help")
+                changed = True
+            # 3c. Ensure Bash(governor:*) is present
+            if not any(
+                isinstance(e, str) and e.startswith("Bash(governor") for e in new_allow
+            ):
+                new_allow.append("Bash(governor:*)")
+                changed = True
+            if changed:
+                data.setdefault("permissions", {})["allow"] = new_allow
+                settings.write_text(json.dumps(data, indent=2))
 
     # 4. .mcp.json
     mcp_json = project_root / ".mcp.json"
@@ -148,12 +188,31 @@ def apply_plan(plan: Plan) -> None:
 
 
 def find_projects(root: Path) -> list[Path]:
+    """Find any project that may need a sweep: has .visionlog/ OR .governor/
+    OR mentions governor in its .claude/settings.local.json.
+    """
     found = []
-    for path in root.rglob(".visionlog"):
-        if path.is_dir():
-            parent = path.parent
-            if (parent / ".governor").exists():
-                continue
+    seen: set[Path] = set()
+    for marker in (".visionlog", ".governor"):
+        for path in root.rglob(marker):
+            if path.is_dir():
+                parent = path.parent
+                if parent in seen:
+                    continue
+                seen.add(parent)
+                found.append(parent)
+    # Also include any .claude/settings.local.json that references governor —
+    # the consumer may not host the project itself (e.g., a cockpit).
+    for settings in root.rglob(".claude/settings.local.json"):
+        parent = settings.parent.parent
+        if parent in seen:
+            continue
+        try:
+            content = settings.read_text()
+        except OSError:
+            continue
+        if "mcp__governor__" in content or "mcp__visionlog__" in content:
+            seen.add(parent)
             found.append(parent)
     return sorted(found)
 
@@ -161,7 +220,7 @@ def find_projects(root: Path) -> list[Path]:
 def main() -> int:
     p = argparse.ArgumentParser(
         prog="governor-migrate",
-        description="Migrate a project from visionlog-md state to governor-md state.",
+        description="Migrate a project to current governor state (visionlog→governor, MCP-fat→CLI-first).",
     )
     p.add_argument(
         "--root",
@@ -182,13 +241,17 @@ def main() -> int:
             return 2
         projects = find_projects(args.root)
         if not projects:
-            print(f"No .visionlog/ directories under {args.root}.")
+            print(f"Nothing to migrate under {args.root}.")
             return 0
-        print(f"Found {len(projects)} project(s) with .visionlog/ under {args.root}.\n")
+        print(f"Found {len(projects)} candidate(s) under {args.root}.\n")
     else:
         cwd = Path.cwd()
-        if not (cwd / ".visionlog").is_dir():
-            print(f"No .visionlog/ in {cwd}. Nothing to migrate.")
+        if not (
+            (cwd / ".visionlog").is_dir()
+            or (cwd / ".governor").is_dir()
+            or (cwd / ".claude" / "settings.local.json").is_file()
+        ):
+            print(f"Nothing to migrate in {cwd}.")
             print("Use --root to sweep a directory tree.")
             return 0
         projects = [cwd]
@@ -215,7 +278,7 @@ def main() -> int:
 
     print(f"\nDone. Migrated {len(nonempty)} project(s).")
     print(
-        "Restart any active Claude Code sessions so they pick up the renamed MCP server."
+        "Restart any active Claude Code sessions so they pick up the collapsed MCP server."
     )
     return 0
 

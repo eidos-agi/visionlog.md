@@ -87,13 +87,15 @@ def register(path: str) -> tuple[str, str]:
 def boot_from_cwd(path: str | None = None) -> None:
     """Walk up from ``path`` (default CWD) and register any .governor project found.
 
-    Safe to call repeatedly. Silently no-ops if no project is found.
+    Also sets the discovered project as the session default so commands that
+    take no ``--project-id`` resolve cleanly. Safe to call repeatedly.
     """
     start = Path(path).resolve() if path else Path.cwd()
     root = find_project_root(str(start))
     if not root:
         return
     try:
-        register(root)
+        _, pid = register(root)
     except Exception:
         return
+    set_default(_registry[pid])
