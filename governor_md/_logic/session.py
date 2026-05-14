@@ -155,7 +155,9 @@ def governor_guide(project_id: str | None = None) -> str:
         by_status: dict[str, list] = {}
         for g in goals:
             by_status.setdefault(g.status, []).append(g)
-        order = ["in-progress", "available", "locked", "complete"]
+        # Known order first, then any other statuses encountered (proposed, blocked, etc.)
+        known = ["in-progress", "available", "locked", "complete"]
+        order = known + [s for s in by_status if s not in known]
         goal_lines = []
         for s in order:
             for g in by_status.get(s, []):
